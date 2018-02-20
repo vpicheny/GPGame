@@ -61,14 +61,6 @@ nonDomSet <- function(points, ref) {
     .Call(`_GPGame_nonDomSet`, points, ref)
 }
 
-PSNE_sparseMat_cross <- function(NS, Poffs, expindices, combisim, ncross) {
-    .Call(`_GPGame_PSNE_sparseMat_cross`, NS, Poffs, expindices, combisim, ncross)
-}
-
-getPoffsCross <- function(isNash, Poffs, combisim, nsim) {
-    .Call(`_GPGame_getPoffsCross`, isNash, Poffs, combisim, nsim)
-}
-
 PSNE_sparseMat <- function(NS, Poffs, expindices) {
     .Call(`_GPGame_PSNE_sparseMat`, NS, Poffs, expindices)
 }
@@ -79,5 +71,13 @@ PSNE_sparseMat_sorted <- function(NS, Poffs, expindices) {
 
 getPoffs <- function(isNash, Poffs, nsim, nobj) {
     .Call(`_GPGame_getPoffs`, isNash, Poffs, nsim, nobj)
+}
+
+PSNE_sparseMat_cross <- function(NS, Poffs, expindices, combisim, ncross) {
+    .Call(`_GPGame_PSNE_sparseMat_cross`, NS, Poffs, expindices, combisim, ncross)
+}
+
+getPoffsCross <- function(isNash, Poffs, combisim, nsim) {
+    .Call(`_GPGame_getPoffsCross`, isNash, Poffs, combisim, nsim)
 }
 
