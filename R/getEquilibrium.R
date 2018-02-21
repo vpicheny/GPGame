@@ -341,7 +341,7 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
     NE[u]     <- I[i]
   }
   if (return.design==FALSE) return(NEPoff)
-  else                     return(list(NEPoff=NEPoff, NE=I[i]))
+  else                     return(list(NEPoff=NEPoff, NE=NE))
 }
 
 ## Seems faster

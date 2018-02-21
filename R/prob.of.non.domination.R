@@ -59,7 +59,8 @@ prob.of.non.domination <- function(paretoFront=NULL, model=NULL, integration.poi
   # 2 or 3 objectives only
   # Providing the kriging predictions may accelerate considerably the evaluation
   ###########################################################################################
-
+  if (is.null(nsamp)) nsamp <- 100
+  
   if (is.null(model) && is.null(predictions)){
     print("Error: either a list of models or a list of km predictions must be provided")
     return(NULL)
@@ -180,26 +181,20 @@ prob.of.non.domination <- function(paretoFront=NULL, model=NULL, integration.poi
     return(pn)
     ###########################################################################################
   } else {
-    # print("Error: only 2 or 3 objectives are handled")
-    # return(NULL)
-
-    # print("With more than 3 objectives, estimation is performed by sampling.")
-
-    # for(i in 1:length(pn)){
     samps <- NULL
-    for(j in 1:n.obj){
-      samps <- cbind(samps, rnorm(nsamp*n.integration.points, mean = predictions[[j]]$mean, predictions[[j]]$sd))
+    for (j in 1:n.obj){
+      samps <- cbind(samps, rnorm(nsamp*n.integration.points, mean = predictions[[j]]$mean, sd = predictions[[j]]$sd))
     }
     # for(j in 1:nsamp){
     #   pn[i] = pn[i] + !is_dominated(t(rbind(samps[j,], paretoFront)))[1]
     # }
     # pn <- rowSums(matrix(nonDomSet(samps, paretoFront), n.integration.points))
-    
+
     # pn <- rowSums(matrix(nonDom(samps, paretoFront), n.integration.points))
     idx <- nonDom(samps, paretoFront, return.idx=TRUE)
-    pn <- rowSums(matrix(tabulate(idx, nbins=nsamp*n.integration.points), n.integration.points))
-    
-    # }
+
+    if (length(idx) == 0)  pn <- rep(1e-12, n.integration.points)
+    else                   pn <- rowSums(matrix(tabulate(idx, nbins=nsamp*n.integration.points), n.integration.points))
 
     return(pn/nsamp)
   }
