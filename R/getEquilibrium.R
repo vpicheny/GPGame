@@ -2,7 +2,7 @@
 ##' Computes the equilibrium of three types of games, given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
 ##' @title Equilibrium computation of a discrete game for a given matrix with objectives values
 ##' @param Z is a matrix of size [\code{npts x nsim*nobj}] of objective values, see details,
-##' @param equilibrium considered type, one of \code{"NE"}, \code{"NKSE"}, \code{"KSE"}
+##' @param equilibrium considered type, one of \code{"NE"}, \code{"NKSE"}, \code{"KSE"}, \code{"CKSE"}
 ##' @param nobj nb of objectives (or players)
 ##' @param n.s scalar of vector. If scalar, total number of strategies (to be divided equally among players),
 ##'  otherwise number of strategies per player.
