@@ -61,6 +61,11 @@ generate_integ_pts <- function(n.s, d, nobj, x.to.obj=NULL, gridtype="cartesian"
     # KSE & LHS: standard LHS is generated
     if (include.obs) n.lhs <- max(0, n.s - model[[1]]@n) else n.lhs <- n.s
     test.grid <- lhsDesign(n=n.lhs, dimension=d, seed = seed)$design
+    
+    # Scaling
+    test.grid <- test.grid*matrix((ub - lb), nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE) +
+      matrix(lb, nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE)
+    
     if (include.obs) test.grid <- rbind(model[[1]]@X, test.grid)
     expanded.indices <- matrix(rep(seq(1,n.s), d), ncol=d)
   } else {
@@ -85,10 +90,11 @@ generate_integ_pts <- function(n.s, d, nobj, x.to.obj=NULL, gridtype="cartesian"
     for (i in 1:nobj) {
       test.grid <- cbind(test.grid, subspace.doe[[i]][expanded.indices[,i],])
     }
+    
+    # Scaling
+    test.grid <- test.grid*matrix((ub - lb), nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE) +
+      matrix(lb, nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE)
   }
-  # Scaling
-  test.grid <- test.grid*matrix((ub - lb), nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE) +
-    matrix(lb, nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE)
 
   return(list(integ.pts=test.grid, expanded.indices=as.matrix(expanded.indices), n.s=n.s))
 }
