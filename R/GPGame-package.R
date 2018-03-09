@@ -4,8 +4,13 @@
 ##' @author Victor Picheny, Mickael Binois
 ##' @name GPGame
 ##' @references
-##' V. Picheny, M. Binois, A. Habbal (2016+), A Bayesian optimization approach to find Nash equilibria,
+##' V. Picheny, M. Binois, A. Habbal (2016+), A Bayesian Optimization approach to find Nash equilibria,
 ##' \emph{https://arxiv.org/abs/1611.02440}.
+##' 
+##' M. Binois, V. Picheny, A. Habbal, "The Kalai-Smorodinski solution for many-objective Bayesian optimization", 
+##' NIPS BayesOpt workshop, December 2017, Long Beach, USA,
+##' \emph{https://bayesopt.github.io/papers/2017/28.pdf}.
+##' 
 ##' @details
 ##' Important functions: \cr
 ##' \code{\link[GPGame]{solve_game}} \cr
