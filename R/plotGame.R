@@ -232,7 +232,7 @@ plotGame <- function(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE, simus =
       if (typeof(simus) == "character") {
         cat("Conditional simulations failed - maybe there are too many integration points \n Correct or set UQ_eq = FALSE \n")
         Eq_simu <- NULL
-        break;
+        return(NA)
       }
     }
     if (is.null(integcontrol$n.s)) integcontrol$n.s <- apply(res$integcontrol$expanded.indices, 2, max)
