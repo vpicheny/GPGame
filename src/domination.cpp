@@ -46,10 +46,11 @@ std::vector<int> kung(int i_begin, int i_end, const double* ptr_mat, int nobj, i
   tmp1 = kung(i_begin, (i_begin + i_end)/2, ptr_mat, nobj, nr);
   std::vector<int> tmp2 = kung((i_begin + i_end)/2 + 1, i_end, ptr_mat, nobj, nr);
 
-  int j, i = 0;
-  int sizetmp1 = tmp1.size();
+  std::size_t j, i = 0;
+  std::size_t sizetmp1 = tmp1.size();
+  std::size_t sizetmp2 = tmp2.size();
 
-  while(i < tmp2.size()){
+  while(i < sizetmp2){
     j = 0;
     while(j < sizetmp1){
       if(!Pdom(ptr_mat, tmp1[j]-1, tmp2[i]-1, nobj, nr)){ // elements starts from 0 in C++

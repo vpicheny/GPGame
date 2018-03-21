@@ -107,7 +107,7 @@ LogicalMatrix PSNE_sparseMat_cross(NumericVector NS, NumericMatrix Poffs, Intege
 
             if(isStrat_i){
               if(Poffs(k, ind_sims(i)) < bestPoffi_j){
-                for(int p = 0; p < ind_old.size(); p++){
+                for(std::size_t p = 0, max = ind_old.size(); p != max; p++){
                   for(int q = 0; q < ncross; q++)
                     isNash(ind_old[p], indNash(q)) = false;
                 }

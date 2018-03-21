@@ -64,7 +64,7 @@ LogicalMatrix PSNE_sparseMat(NumericVector NS, NumericMatrix Poffs, IntegerMatri
 
             if(isStrat_i){
               if(Poffs(k, i * nsim + s) < bestPoffi_j){
-                for(int p = 0; p < ind_old.size(); p++){
+                for(std::size_t p = 0, max = ind_old.size(); p != max; p++){
                   isNash(ind_old[p], s) = false;
                 }
                 ind_old.clear();
@@ -171,7 +171,7 @@ LogicalMatrix PSNE_sparseMat_sorted(NumericVector NS, NumericMatrix Poffs, Integ
 
             if(isStrat_i){
               if(Poffs(k, i * nsim + s) < bestPoffi_j){
-                for(int p = 0; p < ind_old.size(); p++){
+                for(std::size_t p = 0, max = ind_old.size(); p != max; p++){
                   isNash(ind_old[p], s) = false;
                 }
                 ind_old.clear();
