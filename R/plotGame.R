@@ -174,7 +174,7 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
 ##' library(parallel)
 ##'
 ##' # Turn off on Windows
-##' parallel <- TRUE # FALSE #
+##' parallel <- FALSE # TRUE
 ##' ncores <- 1
 ##' if(parallel) ncores <- detectCores()
 ##' cov.reestim <- TRUE
