@@ -1,29 +1,3 @@
-# ##' Returns which elements are Pareto non-dominated from a set of points
-# ##' @title Index of non-dominated points
-# ##' @param points matrix (one point per row) from which to extract non-dominated points
-# ##' @return index of non-dominated points
-# ##' @details Use Kung non-domination sorting
-# ##' @export
-# ##' @references
-# ##' Kung, H. T., Luccio, F., & Preparata, F. P. (1975). On finding the maxima of a set of vectors. Journal of the ACM (JACM), 22(4), 469-476.
-# ##' @examples
-# ##' \dontrun{
-# ##' d <- 6
-# ##' n <- 1000
-# ##' test <- matrix(runif(d * n), n)
-# ##' library(emoa)
-# ##' indPF_ref <- which(!is_dominated(t(test)))
-# ##' indPF <- nonDomInd(test)
-# ##' all(indPF %in% indPF_ref)
-# ##'
-# ##' library(microbenchmark)
-# ##' microbenchmark(is_dominated(t(test)), nonDomInd(test))
-# ##' }
-# nonDomInd <- function(points){
-#   ordrs <- order(points[,1])
-#   return(ordrs[nonDomInd_cpp(points[ordrs, , drop = FALSE])])
-# }
-
 ##' Extract non-dominated points from a set, or with respect to a reference Pareto front
 ##' @title Generic non-domination computation
 ##' @param points matrix (one point per row) from which to extract non-dominated points, or,
@@ -47,13 +21,13 @@
 ##' indPF <- nonDom(ref, return.idx = TRUE)
 ##' all(nonDom(ref) == ref[indPF,])
 ##'
-##' system.time(res <- nonDom(test, ref[indPF,,drop = F], return.idx = TRUE))
+##' system.time(res <- nonDom(test, ref[indPF,,drop = FALSE], return.idx = TRUE))
 ##'
 ##' res2 <- rep(NA, n2)
 ##' library(emoa)
 ##' t0 <- Sys.time()
 ##' for(i in 1:n2){
-##'   res2[i] <- !is_dominated(t(rbind(test[i,, drop = F], ref[indPF,])))[1]
+##'   res2[i] <- !is_dominated(t(rbind(test[i,, drop = FALSE], ref[indPF,])))[1]
 ##' }
 ##' print(Sys.time() - t0)
 ##'

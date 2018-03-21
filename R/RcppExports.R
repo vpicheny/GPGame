@@ -54,7 +54,7 @@ nonDomInd_cpp <- function(mat) {
 #' @title Non-dominated points with respect to a reference
 #' @param points matrix (one point per row) that are compared to a reference \code{ref} (i.e., not between themselves)
 #' @param ref matrix (one point per row) of reference (faster if they are already Pareto optimal)
-#' @export
+#' @noRd
 #' @examples
 #' \dontrun{
 #' d <- 6
@@ -63,7 +63,7 @@ nonDomInd_cpp <- function(mat) {
 #'
 #' test <- matrix(runif(d * n), n)
 #' ref <- matrix(runif(d * n), n)
-#' indPF <- nonDomInd(ref)
+#' indPF <- nonDom(ref)
 #'
 #' system.time(res <- nonDomSet(test, ref[indPF,,drop = FALSE]))
 #'
