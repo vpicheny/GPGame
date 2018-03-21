@@ -364,7 +364,7 @@ solve_game <- function(
   if (is.null(expanded.indices)) {
     sorted <- FALSE
   } else {
-    sorted <- !is.unsorted(expanded.indices[,d])
+    sorted <- !is.unsorted(expanded.indices[, ncol(expanded.indices)])
   }
   t2 <- Sys.time() - t1
   if (trace>2) cat("Time for initialization: ", t2, units(t2), "\n")
