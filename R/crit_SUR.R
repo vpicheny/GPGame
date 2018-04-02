@@ -151,7 +151,7 @@ crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equil
     # else
     Ynew1  <- matrix(Simu[idx,], nsim, nobj)
 
-    sorted <- !is.unsorted(expanded.indices[,nobj])
+    sorted <- !is.unsorted(expanded.indices[,ncol(expanded.indices)])
     if (plot) plot(NA, xlim=c(-200, 100), ylim=c(-50,-10))
 
     Gamma <- apply(Ynew2, 1, computeGamma, Simu=Simu, lambda=lambda, Ynew=Ynew1, n.s=n.s, kweights = kweights, Nadir=Nadir,

@@ -32,7 +32,7 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
   
   expanded.indices <- integcontrol$expanded.indices
   integ.pts <- integcontrol$integ.pts
-  nobj <- ncol(expanded.indices)
+  nobj <- length(model)
   if (is.null(Nadir)) Nadir <- rep(Inf, nobj)
   
   if (is.null(options) && type=="Pnash") options <- list(method = 'simu', nsim = 100)
