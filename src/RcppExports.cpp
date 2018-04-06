@@ -5,26 +5,32 @@
 
 using namespace Rcpp;
 
-// nonDomInd_cpp
-std::vector<int> nonDomInd_cpp(NumericMatrix mat);
-RcppExport SEXP _GPGame_nonDomInd_cpp(SEXP matSEXP) {
+// PSNE_sparseMat_cross
+LogicalMatrix PSNE_sparseMat_cross(NumericVector NS, NumericMatrix Poffs, IntegerMatrix expindices, IntegerMatrix combisim, int ncross);
+RcppExport SEXP _GPGame_PSNE_sparseMat_cross(SEXP NSSEXP, SEXP PoffsSEXP, SEXP expindicesSEXP, SEXP combisimSEXP, SEXP ncrossSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type mat(matSEXP);
-    rcpp_result_gen = Rcpp::wrap(nonDomInd_cpp(mat));
+    Rcpp::traits::input_parameter< NumericVector >::type NS(NSSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Poffs(PoffsSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type expindices(expindicesSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type combisim(combisimSEXP);
+    Rcpp::traits::input_parameter< int >::type ncross(ncrossSEXP);
+    rcpp_result_gen = Rcpp::wrap(PSNE_sparseMat_cross(NS, Poffs, expindices, combisim, ncross));
     return rcpp_result_gen;
 END_RCPP
 }
-// nonDomSet
-LogicalVector nonDomSet(NumericMatrix points, NumericMatrix ref);
-RcppExport SEXP _GPGame_nonDomSet(SEXP pointsSEXP, SEXP refSEXP) {
+// getPoffsCross
+NumericMatrix getPoffsCross(LogicalMatrix isNash, NumericMatrix Poffs, IntegerMatrix combisim, int nsim);
+RcppExport SEXP _GPGame_getPoffsCross(SEXP isNashSEXP, SEXP PoffsSEXP, SEXP combisimSEXP, SEXP nsimSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type points(pointsSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type ref(refSEXP);
-    rcpp_result_gen = Rcpp::wrap(nonDomSet(points, ref));
+    Rcpp::traits::input_parameter< LogicalMatrix >::type isNash(isNashSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Poffs(PoffsSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type combisim(combisimSEXP);
+    Rcpp::traits::input_parameter< int >::type nsim(nsimSEXP);
+    rcpp_result_gen = Rcpp::wrap(getPoffsCross(isNash, Poffs, combisim, nsim));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -68,44 +74,38 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// PSNE_sparseMat_cross
-LogicalMatrix PSNE_sparseMat_cross(NumericVector NS, NumericMatrix Poffs, IntegerMatrix expindices, IntegerMatrix combisim, int ncross);
-RcppExport SEXP _GPGame_PSNE_sparseMat_cross(SEXP NSSEXP, SEXP PoffsSEXP, SEXP expindicesSEXP, SEXP combisimSEXP, SEXP ncrossSEXP) {
+// nonDomInd_cpp
+std::vector<int> nonDomInd_cpp(NumericMatrix mat);
+RcppExport SEXP _GPGame_nonDomInd_cpp(SEXP matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type NS(NSSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type Poffs(PoffsSEXP);
-    Rcpp::traits::input_parameter< IntegerMatrix >::type expindices(expindicesSEXP);
-    Rcpp::traits::input_parameter< IntegerMatrix >::type combisim(combisimSEXP);
-    Rcpp::traits::input_parameter< int >::type ncross(ncrossSEXP);
-    rcpp_result_gen = Rcpp::wrap(PSNE_sparseMat_cross(NS, Poffs, expindices, combisim, ncross));
+    Rcpp::traits::input_parameter< NumericMatrix >::type mat(matSEXP);
+    rcpp_result_gen = Rcpp::wrap(nonDomInd_cpp(mat));
     return rcpp_result_gen;
 END_RCPP
 }
-// getPoffsCross
-NumericMatrix getPoffsCross(LogicalMatrix isNash, NumericMatrix Poffs, IntegerMatrix combisim, int nsim);
-RcppExport SEXP _GPGame_getPoffsCross(SEXP isNashSEXP, SEXP PoffsSEXP, SEXP combisimSEXP, SEXP nsimSEXP) {
+// nonDomSet
+LogicalVector nonDomSet(NumericMatrix points, NumericMatrix ref);
+RcppExport SEXP _GPGame_nonDomSet(SEXP pointsSEXP, SEXP refSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< LogicalMatrix >::type isNash(isNashSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type Poffs(PoffsSEXP);
-    Rcpp::traits::input_parameter< IntegerMatrix >::type combisim(combisimSEXP);
-    Rcpp::traits::input_parameter< int >::type nsim(nsimSEXP);
-    rcpp_result_gen = Rcpp::wrap(getPoffsCross(isNash, Poffs, combisim, nsim));
+    Rcpp::traits::input_parameter< NumericMatrix >::type points(pointsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type ref(refSEXP);
+    rcpp_result_gen = Rcpp::wrap(nonDomSet(points, ref));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_GPGame_nonDomInd_cpp", (DL_FUNC) &_GPGame_nonDomInd_cpp, 1},
-    {"_GPGame_nonDomSet", (DL_FUNC) &_GPGame_nonDomSet, 2},
+    {"_GPGame_PSNE_sparseMat_cross", (DL_FUNC) &_GPGame_PSNE_sparseMat_cross, 5},
+    {"_GPGame_getPoffsCross", (DL_FUNC) &_GPGame_getPoffsCross, 4},
     {"_GPGame_PSNE_sparseMat", (DL_FUNC) &_GPGame_PSNE_sparseMat, 3},
     {"_GPGame_PSNE_sparseMat_sorted", (DL_FUNC) &_GPGame_PSNE_sparseMat_sorted, 3},
     {"_GPGame_getPoffs", (DL_FUNC) &_GPGame_getPoffs, 4},
-    {"_GPGame_PSNE_sparseMat_cross", (DL_FUNC) &_GPGame_PSNE_sparseMat_cross, 5},
-    {"_GPGame_getPoffsCross", (DL_FUNC) &_GPGame_getPoffsCross, 4},
+    {"_GPGame_nonDomInd_cpp", (DL_FUNC) &_GPGame_nonDomInd_cpp, 1},
+    {"_GPGame_nonDomSet", (DL_FUNC) &_GPGame_nonDomSet, 2},
     {NULL, NULL, 0}
 };
 
