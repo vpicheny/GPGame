@@ -820,3 +820,20 @@ solve_game <- function(
               Jplus = all.Jplus, integcontrol=integcontrol, predEq = predEq))
   
 }
+
+##' Wrapper around \code{\link[GPGame]{solve_game}} to add iterations to an existing run
+##' @title Restart existing run
+##' @param results output of \code{\link[GPGame]{solve_game}} that is to be continued
+##' @param n.ite number of additional iterations of sequential optimization
+##' @note Temporary function: either save more detailts in results or remove it
+restart_sg <- function(results, fun, ..., equilibrium="NE", crit="sur", n.ite, d, x.to.obj=NULL, 
+                       Nadir=NULL, integcontrol=NULL, simucontrol=NULL, filtercontrol=NULL, kmcontrol=NULL, returncontrol=NULL,
+                       ncores=1, trace=1, seed=NULL){
+  new_result <- solve_game(fun = fun, ... = ..., equilibrium = equilibrium, crit = crit, model = results$model,
+                           n.ite = n.ite, d = d, nobj = length(model), x.to.obj = x.to.obj, Nadir = Nadir,
+                           integcontrol = integcontrol, simucontrol = simucontrol, kmcontrol = kmcontrol,
+                           filtercontrol = filtercontrol, ncores = ncores, trace = trace, seed = seed)
+  new_result$Jplus <- c(results$Jplus, new_result$Jplus)
+  
+}
+
