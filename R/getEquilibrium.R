@@ -312,9 +312,13 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
           Nadir_emp  <- apply(Zrand, 2, max)
           if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
           
-          alldist2 <- rowSums((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T))^2) -
-            as.numeric(((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
-            drop(crossprod(Nadir - Shadow, Nadir - Shadow))
+          # alldist2 <- rowSums((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T))^2) -
+          #   as.numeric(((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
+          #   drop(crossprod(Nadir - Shadow, Nadir - Shadow))
+          
+          alldist2 <- rowSums(((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow)))^2) -
+            as.numeric((((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow))) 
+                        %*%(matrix(rep(1/sqrt(nobj), nobj), nrow = nobj)))^2)
 
           Ztarget <- Zrand[which.min(alldist2),]
         }
@@ -329,9 +333,14 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
           Shadow <- apply(Zred, 2, min)
           Nadir_emp <- apply(Zred, 2, max)
           if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
-          alldist2 <- rowSums((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))^2) -
-            as.numeric(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
-            drop(crossprod(Nadir - Shadow, Nadir - Shadow))
+          # Quick fix for distance
+          # alldist2 <- rowSums((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))^2) -
+          #   as.numeric(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
+          #   drop(crossprod(Nadir - Shadow, Nadir - Shadow))
+          alldist2 <- rowSums(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow)))^2) -
+            as.numeric((((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow))) 
+                        %*%(matrix(rep(1/sqrt(nobj), nobj), nrow = nobj)))^2)
+          
           i <- which.min(alldist2)
         }
       }
