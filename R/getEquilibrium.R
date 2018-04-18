@@ -303,7 +303,8 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
           Zrand <- Zrand[Irand,, drop = FALSE]
 
           # best index on randomly sampled points
-          Ztarget <- Zrand[which.min(apply(Urand, 1, var)),]
+          Ztarget <- Zrand[which.max(apply(Urand, 1, min)),]
+          # Ztarget <- Zrand[which.min(apply(Urand, 1, var)),]
           # i <- which.min(apply(apply(Zred, 2, rank), 1, var))
         } else {
           Zrand <- Zrand[Irand,, drop = FALSE]
@@ -316,11 +317,15 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
           #   as.numeric(((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
           #   drop(crossprod(Nadir - Shadow, Nadir - Shadow))
           
-          alldist2 <- rowSums(((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow)))^2) -
-            as.numeric((((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow))) 
-                        %*%(matrix(rep(1/sqrt(nobj), nobj), nrow = nobj)))^2)
-
-          Ztarget <- Zrand[which.min(alldist2),]
+          # alldist2 <- rowSums(((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow)))^2) -
+          #   as.numeric((((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow))) 
+          #               %*%(matrix(rep(1/sqrt(nobj), nobj), nrow = nobj)))^2)
+          
+          # ratios <- (Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T) ) /  (matrix(rep(Shadow - Nadir, nrow(Zrand)), ncol=nobj, byrow=T))
+          
+          ratios <- sweep(sweep(Zrand, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
+          Ztarget <- Zrand[which.max(apply(ratios, 1, min)),]
+          # Ztarget <- Zrand[which.min(alldist2),]
         }
         # now find the closest point on Zred of Zrand[i]
         i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2))
@@ -328,7 +333,8 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
         if (copula) {
           Ured <- apply(Z, 2, faster_rank)
           Ured <- Ured[I,, drop=FALSE]
-          i <- which.min(apply(Ured, 1, var))
+          # i <- which.min(apply(Ured, 1, var))
+          i <- which.max(apply(Ured, 1, min))
         } else {
           Shadow <- apply(Zred, 2, min)
           Nadir_emp <- apply(Zred, 2, max)
@@ -337,14 +343,16 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
           # alldist2 <- rowSums((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))^2) -
           #   as.numeric(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
           #   drop(crossprod(Nadir - Shadow, Nadir - Shadow))
-          alldist2 <- rowSums(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow)))^2) -
-            as.numeric((((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow))) 
-                        %*%(matrix(rep(1/sqrt(nobj), nobj), nrow = nobj)))^2)
+          # alldist2 <- rowSums(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow)))^2) -
+          #   as.numeric((((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow))) 
+          #               %*%(matrix(rep(1/sqrt(nobj), nobj), nrow = nobj)))^2)
           
-          i <- which.min(alldist2)
+          ratios <- sweep(sweep(Zred, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
+          i <- which.max(apply(ratios, 1, min))
+          
+          # i <- which.min(alldist2)
         }
       }
-
     }
     NEPoff[u,] <- Zred[i,,drop = FALSE]
     NE[u]     <- I[i]
