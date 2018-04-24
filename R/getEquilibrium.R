@@ -12,7 +12,7 @@
 ##' @param cross Should the simulation be crossed? (May be dropped in future versions)
 ##' @param kweights kriging weights for \code{CKS} (TESTING)
 ## ' @param NSobs Nadir and Shadow points of the observations (useful for \code{KSE} in the non-noisy case), number of columns must match with \code{Z}
-##' @param Nadir optional vector of size \code{nobj}. Replaces the nadir point for \code{KSE}. Some coordinates can be set to NULL.
+##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir and/or shadow point for \code{KSE}. Some coordinates can be set to \code{Inf} (resp. -\code{Inf}).
 ##' @details If \code{nsim=1}, each line of \code{Z} contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
 ##' The position of the strategy \code{s} in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim>1}, (vectorized call) \code{Z} contains
 ##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
@@ -94,12 +94,12 @@
 ##'              equilibrium = "NKSE")
 ##' }
 getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj=2, n.s, expanded.indices=NULL, return.design=FALSE,
-                           sorted=FALSE, cross=FALSE, kweights = NULL, Nadir=NULL){
+                           sorted=FALSE, cross=FALSE, kweights = NULL, Nadir=NULL, Shadow=NULL){
   #### Choose appropriate function ###################
   if (equilibrium=="NE"){
     return(getNashEquilibrium(Z = Z, nobj = nobj, n.s = n.s, expanded.indices = expanded.indices, return.design = return.design, sorted = sorted, cross = cross))
   } else if (equilibrium=="KSE") {
-    return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross, Nadir=Nadir))
+    return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross, Nadir=Nadir, Shadow=Shadow))
     # return(getKSequilibrium(Z = rbind(Z, NSobs), nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross))
   } else if (equilibrium=="CKSE"){
     return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross,
@@ -249,15 +249,15 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' @param cross if TRUE, all the combinations of trajectories are used
 ##' @param copula Boolean: if TRUE, the KS equilibrium is computed in the copula space and the maximum of all objectives is used instead of the Nadir
 ##' @param kweights kriging weights for \code{CKS} (TESTING)
-##' @param Nadir optional vector of size \code{nobj} to fix the Nadir to a preset value. If only a subset of values needs to be defined, 
-##' the other coordinates can be set to \code{Inf}.
+##' @param Nadir,Shadow optional vectors of size \code{nobj} to fix the Nadir and/or Shadow to a preset value. If only a subset of values needs to be defined, 
+##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
 ##' @param ... not used, for compatibility
 ##' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
 ##' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
 ##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
 ##' @noRd
 ##' @importFrom stats var
-getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula=FALSE, kweights = NULL, Nadir = NULL, ...){
+getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, ...){
 
   nsim <- ncol(Z) / nobj
 
@@ -309,10 +309,11 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
         } else {
           Zrand <- Zrand[Irand,, drop = FALSE]
           
-          Shadow <- apply(Zrand, 2, min)
+          Shadow_emp <- apply(Zrand, 2, min)
           Nadir_emp  <- apply(Zrand, 2, max)
-          if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
           
+          if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
+          if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
           # alldist2 <- rowSums((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T))^2) -
           #   as.numeric(((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
           #   drop(crossprod(Nadir - Shadow, Nadir - Shadow))
@@ -336,9 +337,12 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
           # i <- which.min(apply(Ured, 1, var))
           i <- which.max(apply(Ured, 1, min))
         } else {
-          Shadow <- apply(Zred, 2, min)
-          Nadir_emp <- apply(Zred, 2, max)
+          Shadow_emp <- apply(Zred, 2, min)
+          Nadir_emp  <- apply(Zred, 2, max)
+          
           if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
+          if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
+          
           # Quick fix for distance
           # alldist2 <- rowSums((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))^2) -
           #   as.numeric(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /

@@ -18,8 +18,8 @@
 ##' @param include.obs Boolean. If \code{TRUE}, the observations are included to the filtered set.
 ##' @param min.crit Minimal value for the criterion, useful if \code{random = TRUE}.
 ##' @param nsamp number of samples to estimate the probability of non-domination, useful when \code{type=PND} and \code{nobj}>3.
-##' @param Nadir optional vector of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
-##' the other coordinates can be set to \code{Inf}.
+##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
+##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
 ##' @return List with two elements: \code{I} indices selected and \code{crit} the filter metric at all candidate points
 ##' @details If \code{type == "windows"}, points are ranked based on their distance to \code{option$window} (when it is a target vector),
 ##' or based on the probability that the response belongs to \code{option$window}.
@@ -28,12 +28,13 @@
 ##' @export
 filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="window", equilibrium="NE",
                             integcontrol, options = NULL, ncores = 1, random=TRUE, include.obs=FALSE,
-                            min.crit = 1e-12, nsamp = NULL, Nadir=NULL) {
+                            min.crit = 1e-12, nsamp = NULL, Nadir=NULL, Shadow=NULL) {
   
   expanded.indices <- integcontrol$expanded.indices
   integ.pts <- integcontrol$integ.pts
   nobj <- length(model)
   if (is.null(Nadir)) Nadir <- rep(Inf, nobj)
+  if (is.null(Shadow)) Shadow <- rep(-Inf, nobj)
   
   if (is.null(options) && type=="Pnash") options <- list(method = 'simu', nsim = 100)
   if(type == "Pnash" && is.null(options$method)){
@@ -105,11 +106,13 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
     PFobs <- nonDom(Reduce(cbind, lapply(model, slot, "y")))
     for (jj in 1:length(model)) {
       discard <- which(predictions[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
-      # EI(min) on each objective (to find potential Utopia points)
-      xcr <-  (min(model[[jj]]@y) - predictions[[jj]]$mean)/predictions[[jj]]$sd
-      test <- (min(model[[jj]]@y) - predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
-      test[discard] <- NA
-      IKS <- c(IKS, which.max(test))
+      if (Shadow[jj] == -Inf) {
+        # EI(min) on each objective (to find potential Utopia points)
+        xcr <-  (min(model[[jj]]@y) - predictions[[jj]]$mean)/predictions[[jj]]$sd
+        test <- (min(model[[jj]]@y) - predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
+        test[discard] <- NA
+        IKS <- c(IKS, which.max(test))
+      }
       # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
       if (Nadir[jj] == Inf) {
         xcr <-  -(max(PFobs[,jj]) - predictions[[jj]]$mean)/predictions[[jj]]$sd
