@@ -824,14 +824,28 @@ solve_game <- function(
 ##' Wrapper around \code{\link[GPGame]{solve_game}} to add iterations to an existing run
 ##' @title Restart existing run
 ##' @param results output of \code{\link[GPGame]{solve_game}} that is to be continued
+##' @param fun fonction with vectorial output
+##' @param ... additional parameter to be passed to fun
+##' @param equilibrium either '\code{NE}', '\code{KSE}', '\code{CKSE}' or '\code{NKSE}' for Nash / Kalai-Smorodinsky / Copula-Kalai-Smorodinsky / Nash-Kalai-Smorodinsky equilibria
+##' @param crit '\code{sur}' (default) is available for all equilibria, '\code{psim}' and '\code{pex}' are available for Nash
 ##' @param n.ite number of additional iterations of sequential optimization
-##' @note Temporary function: either save more detailts in results or remove it
-restart_sg <- function(results, fun, ..., equilibrium="NE", crit="sur", n.ite, d, x.to.obj=NULL, 
+##' @param x.to.obj for NE and NKSE, which variables for which objective
+##' @param noise.var noise variance. Either a scalar (same noise for all objectives), a vector (constant noise, different for each objective), a function (type closure) with vectorial output (variable noise, different for each objective) or "given_by_fn", see Details. If not provided, noise.var is taken as the average of model@noise.var.
+##' @param Nadir,Shadow	optional vectors of size nobj. Replaces the nadir or shadow point for KSE. If only a subset of values needs to be defined, the other coordinates can be set to Inf (resp. -Inf for the shadow).
+##' @param integcontrol optional list for handling integration points. See Details.
+##' @param simucontrol,filtercontrol,kmcontrol,returncontrol see \code{\link[GPGame]{solve_game}}
+##' @param ncores	number of CPU available (> 1 makes mean parallel TRUE)
+##' @param trace controls the level of printing: 0 (no printing), 1 (minimal printing), 3 (detailed printing)
+##' @param seed to fix the random variable generator
+##' @details 
+##' Unless given new values, restart_sg reuses values stored in results (e.g., \code{integcontrol}).
+##' @note Temporary function: maybe save more detailts in results ?
+restart_sg <- function(results, fun, ..., equilibrium="NE", crit="sur", n.ite, x.to.obj=NULL, noise.var = NULL,
                        Nadir=NULL, Shadow=NULL, integcontrol=NULL, simucontrol=NULL, filtercontrol=NULL, kmcontrol=NULL, returncontrol=NULL,
                        ncores=1, trace=1, seed=NULL){
   new_result <- solve_game(fun = fun, ... = ..., equilibrium = equilibrium, crit = crit, model = results$model,
-                           n.ite = n.ite, d = d, nobj = length(model), x.to.obj = x.to.obj, Nadir = Nadir, Shadow=Shadow, 
-                           integcontrol = integcontrol, simucontrol = simucontrol, kmcontrol = kmcontrol,
+                           n.ite = n.ite, d = results$model[[1]]@d, nobj = length(results$model), x.to.obj = x.to.obj, Nadir = Nadir, Shadow=Shadow, 
+                           integcontrol = results$integcontrol, simucontrol = simucontrol, kmcontrol = kmcontrol,
                            filtercontrol = filtercontrol, ncores = ncores, trace = trace, seed = seed)
   new_result$Jplus <- c(results$Jplus, new_result$Jplus)
   
