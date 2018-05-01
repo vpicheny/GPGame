@@ -22,8 +22,8 @@
 ## ' #@param cand.pts,J necessary if a filter has been applied (to avoid mismatch between idx and expanded.indices).
 ## ' #cand.pts is a [ncand x dim] matrix (without filter, equal to integ.pts) and J the vector of indices of cand.pts on the grid.
 ##' @param kweights kriging weights for \code{CKS} (TESTING)
-##' @param Nadir optional vector of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined,
-##' the other coordinates can be set to \code{Inf}.
+##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
+##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf} for the shadow).
 ##' @export
 ##' @seealso \code{\link[GPGame]{crit_PNash}} for an alternative infill criterion
 ##' @references
@@ -95,7 +95,7 @@
 ##' }
 ##'
 crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equilibrium,
-                        n.ynew=NULL, cross=FALSE, IS=FALSE, plot=FALSE, kweights = NULL, Nadir = NULL){
+                        n.ynew=NULL, cross=FALSE, IS=FALSE, plot=FALSE, kweights = NULL, Nadir = NULL, Shadow = NULL){
 
   # if (is.null(cand.pts)) cand.pts <- integ.pts
 
@@ -154,7 +154,7 @@ crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equil
     sorted <- !is.unsorted(expanded.indices[,ncol(expanded.indices)])
     if (plot) plot(NA, xlim=c(-200, 100), ylim=c(-50,-10))
 
-    Gamma <- apply(Ynew2, 1, computeGamma, Simu=Simu, lambda=lambda, Ynew=Ynew1, n.s=n.s, kweights = kweights, Nadir=Nadir,
+    Gamma <- apply(Ynew2, 1, computeGamma, Simu=Simu, lambda=lambda, Ynew=Ynew1, n.s=n.s, kweights = kweights, Nadir=Nadir, Shadow = Shadow,
                    expanded.indices=expanded.indices, cross=cross, sorted=sorted, equilibrium = equilibrium, plot=plot)
 
     return(mean(Gamma, na.rm =TRUE))
@@ -176,7 +176,7 @@ crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equil
 ## ' @param sorted Boolean; if TRUE, the last column of expanded.indices is assumed to be sorted in increasing order. This provides a substantial efficiency gain.
 ## ' @param plot if TRUE, draws equilibria samples (should always be turned off)
 ## ' @param kweights kriging weights for \code{CKS} (TESTING)
-computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kweights = NULL, Nadir = NULL,
+computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kweights = NULL, Nadir = NULL, Shadow = NULL,
                          expanded.indices = NULL, cross = FALSE, sorted = NULL, plot=FALSE){
 
   if (is.null(sorted)) {
@@ -192,7 +192,7 @@ computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kwei
   }
 
   NE_simu_new <- getEquilibrium(Simu, equilibrium = equilibrium, nobj=nobj, n.s=n.s, expanded.indices=expanded.indices,
-                                sorted=sorted, cross=cross, kweights = kweights, Nadir=Nadir)
+                                sorted=sorted, cross=cross, kweights = kweights, Nadir=Nadir, Shadow = Shadow)
 
   # Remove simulations without equilibrium
   NE_simu_new <- NE_simu_new[which(!is.na(NE_simu_new[,1])),, drop = FALSE]
