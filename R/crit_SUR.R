@@ -119,7 +119,7 @@ crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equil
   nobj <- length(model)
   nsim <- ncol(Simu)/nobj
   nsimpts <- nrow(Simu)
-
+  
   if (is.null(n.ynew)) n.ynew <- nsim
 
   if (!checkPredict(x=xnew, model=model)){
@@ -154,7 +154,7 @@ crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equil
 
     sorted <- !is.unsorted(expanded.indices[,nobj])
     if (plot) plot(NA, xlim=c(-200, 100), ylim=c(-50,-10))
-
+    
     Gamma <- apply(Ynew2, 1, computeGamma, Simu=Simu, lambda=lambda, Ynew=Ynew1, n.s=n.s, kweights = kweights, Nadir=Nadir, Shadow = Shadow,
                    expanded.indices=expanded.indices, cross=cross, sorted=sorted, equilibrium = equilibrium, plot=plot, target=target)
 
@@ -194,9 +194,13 @@ computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kwei
 
   if (!is.null(target)) {
     # Calibration mode
-    Simu <- (Simu - matrix(rep(target, nrow(Simu)), byrow=TRUE, nrow=nrow(Simu)))^2
+    # print(str(Simu))
+    # print(str(matrix(rep(target, nrow(Simu)), byrow=TRUE, nrow=nrow(Simu))))
+    Target <- rep(target, each=nsim)
+    Simu <- (Simu - matrix(rep(Target, nrow(Simu)), byrow=TRUE, nrow=nrow(Simu)))^2
   }
-  
+  # nsim, nobj
+
   NE_simu_new <- getEquilibrium(Simu, equilibrium = equilibrium, nobj=nobj, n.s=n.s, expanded.indices=expanded.indices,
                                 sorted=sorted, cross=cross, kweights = kweights, Nadir=Nadir, Shadow = Shadow)
 

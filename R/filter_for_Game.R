@@ -74,24 +74,24 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
           crit <- crit * ( pnorm( (options$window[2,u] - predictions[[u]]$mean)/predictions[[u]]$sd) -
                              pnorm( (options$window[1,u] - predictions[[u]]$mean)/predictions[[u]]$sd) )
         }
+      }
+    } else {
+      # Calibration mode
+      if (is.null(nrow(options$window))) {
+        # Probability of being below target
+        # WINDOW refers to Y or Z= (Y-T)^2 ???? options$window[u] is written here for Z 
+        for (u in 1:length(model)) {
+          crit <- crit * (pnorm( (options$window[u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) - 
+                            pnorm( (-options$window[u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd))
+        }
       } else {
-        # Calibration mode
-        crit <- 42
-        if (is.null(nrow(options$window))) {
-          # Probability of being below target
-          # WINDOW refers to Y or Z= (Y-T)^2 ???? options$window[u] is written here for Z 
-          for (u in 1:length(model)) {
-            crit <- crit * (pnorm( (options$window[u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) - 
-              pnorm( (-options$window[u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd))
-          }
-        } else {
-          # Proba of being in a box
-          for (u in 1:length(model)) {
-            crit <- crit * (pnorm( (options$window[2,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) - 
-                              pnorm( (-options$window[2,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) -
-              pnorm( (options$window[1,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) + 
-                 pnorm( (-options$window[1,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd))
-          }
+        # Proba of being in a box
+        for (u in 1:length(model)) {
+          crit <- crit * (pnorm( (options$window[2,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) - 
+                            pnorm( (-options$window[2,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) -
+                            pnorm( (options$window[1,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) + 
+                            pnorm( (-options$window[1,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd))
+        }
       }
     }
     #---------------------------------
@@ -137,16 +137,16 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
     }
     # }
     if (is.null(target)) {
-    PFobs <- nonDom(Reduce(cbind, lapply(model, slot, "y")))
-    for (jj in 1:length(model)) {
-      discard <- which(predictions[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
-      if (Shadow[jj] == -Inf) {
-        # EI(min) on each objective (to find potential Utopia points)
-        xcr <-  (min(model[[jj]]@y) - predictions[[jj]]$mean)/predictions[[jj]]$sd
-        test <- (min(model[[jj]]@y) - predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
-        test[discard] <- NA
-        IKS <- c(IKS, which.max(test))
-      }
+      PFobs <- nonDom(Reduce(cbind, lapply(model, slot, "y")))
+      for (jj in 1:length(model)) {
+        discard <- which(predictions[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
+        if (Shadow[jj] == -Inf) {
+          # EI(min) on each objective (to find potential Utopia points)
+          xcr <-  (min(model[[jj]]@y) - predictions[[jj]]$mean)/predictions[[jj]]$sd
+          test <- (min(model[[jj]]@y) - predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
+          test[discard] <- NA
+          IKS <- c(IKS, which.max(test))
+        }
         # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
         if (Nadir[jj] == Inf) {
           xcr <-  -(max(PFobs[,jj]) - predictions[[jj]]$mean)/predictions[[jj]]$sd
@@ -157,7 +157,7 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
         }
       }
     } else {
-
+      
       observations <- Reduce(cbind, lapply(model, slot, "y"))
       PFobs <- nonDom((observations - matrix(rep(target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2)
       for (jj in 1:length(model)) {

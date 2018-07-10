@@ -7,8 +7,9 @@
 ##' @param x.to.obj,integcontrol see \code{\link[GPGame]{solve_game}} (for Nash equilibrium only)
 ##' @param equilibrium either "\code{NE}" for Nash, "\code{KSE}" for Kalai-Smoridinsky and "\code{NKSE}" for Nash-Kalai-Smoridinsky
 ##' @param fun.grid optional matrix containing the values of \code{fun} at \code{integ.pts}. Computed if not provided.
-##' @param Nadir optional vector of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
-##' the other coordinates can be set to \code{Inf}.
+##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
+##' the other coordinates can be set to \code{Inf} (resp. \code{-Inf}.
+##' @param target a vector of target values for the objectives
 ##' @param ... further arguments to \code{fun}
 ##' @return list returned by invisible() with elements:
 ##' \itemize{
@@ -43,7 +44,8 @@
 ##' }
 ##'
 plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "design", "objective"), x.to.obj = NULL,
-                         integcontrol = NULL, equilibrium = c("NE", "KSE", "CKSE", "NKSE"), fun.grid = NULL, Nadir = NULL, ...){
+                         integcontrol = NULL, equilibrium = c("NE", "KSE", "CKSE", "NKSE"), fun.grid = NULL, 
+                         Nadir = NULL, Shadow=NULL, target=NULL, ...){
 
   if (is.null(fun) && is.null(fun.grid)) {
     cat("Either fun or fun.grid must be provided \n")
@@ -85,8 +87,13 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
   # Actual function values and Nash equilibrium
   if (is.null(fun.grid)) fun.grid <- t(apply(integ.pts, 1, fun, ... = ...))
   nobj <- ncol(fun.grid)
+  if (!is.null(target)) {
+    # Calibration mode
+    fun.grid <- (fun.grid - matrix(rep(target, nrow(fun.grid)), byrow=TRUE, nrow=nrow(fun.grid)))^2
+  }
+  
   trueEq <- getEquilibrium(Z=fun.grid, equilibrium = equilibrium, nobj=nobj, n.s=n.grid, return.design=TRUE,
-                           expanded.indices = expanded.indices, sorted=TRUE, Nadir = Nadir)
+                           expanded.indices = expanded.indices, sorted=TRUE, Nadir = Nadir, Shadow=Shadow)
 
   trueEqPoff <- trueEq[[1]]
   trueEqdesign <- integ.pts[trueEq[[2]],]
@@ -164,8 +171,8 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
 ##' @param simus optional matrix of conditional simulation if \code{UQ_Eq} is \code{TRUE}
 ##' @param integcontrol list with \code{n.s} element (maybe n.s should be returned by solve_game). See \code{\link[GPGame]{solve_game}}.
 ##' @param simucontrol optional list for handling conditional simulations. See \code{\link[GPGame]{solve_game}}.
-##' @param Nadir optional vector of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
-##' the other coordinates can be set to \code{Inf}.
+##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
+##' the other coordinates can be set to \code{Inf} (resp. \code{-Inf}).
 ##' @param ncores number of CPU available (> 1 makes mean parallel \code{TRUE})
 ##' @export
 ##' @examples
@@ -215,7 +222,8 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
 ##'
 ##'
 ##' }
-plotGame <- function(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE, simus = NULL, integcontrol = NULL, simucontrol = NULL, Nadir = NULL, ncores = 1){
+plotGame <- function(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE, simus = NULL, integcontrol = NULL, simucontrol = NULL, 
+                     Nadir = NULL, Shadow = NULL, ncores = 1, target=NULL){
 
   if (length(res$model)>2) {
     cat("plotGame works only for two players/objectives \n")
@@ -236,12 +244,25 @@ plotGame <- function(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE, simus =
       }
     }
     if (is.null(integcontrol$n.s)) integcontrol$n.s <- apply(res$integcontrol$expanded.indices, 2, max)
+    
+    if (!is.null(target)) {
+      # Calibration mode
+      Target <- rep(target, each=n.sim)
+      simus <- (simus - matrix(rep(Target, nrow(simus)), byrow=TRUE, nrow=nrow(simus)))^2
+    }
+    
     Eq_simu <- getEquilibrium(simus, equilibrium = equilibrium, nobj = length(res$model), n.s = integcontrol$n.s,
-                              expanded.indices = res$integcontrol$expanded.indices, sorted = TRUE, cross = FALSE, Nadir = Nadir)
+                              expanded.indices = res$integcontrol$expanded.indices, sorted = TRUE, cross = FALSE, Nadir = Nadir, Shadow=Shadow)
   } else {
     Eq_simu <- NULL
   }
 
+  if (!is.null(target)) {
+    # Calibration mode
+    res$model[[1]]@y <- (res$model[[1]]@y - target[1])^2
+    res$model[[2]]@y <- (res$model[[2]]@y - target[2])^2
+  }
+  
   xlim <- range(c(res$model[[1]]@y, Eq_simu[,1], res$predEq[[length(res$predEq)]]$NEPoff[1]))
   ylim <- range(c(res$model[[2]]@y, Eq_simu[,2], res$predEq[[length(res$predEq)]]$NEPoff[2]))
 

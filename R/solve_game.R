@@ -219,7 +219,7 @@
 solve_game <- function(
   fun, ..., equilibrium="NE", crit="sur", model=NULL, n.init=NULL, n.ite, d, nobj, x.to.obj=NULL, noise.var = NULL,
   Nadir=NULL, Shadow=NULL, integcontrol=NULL, simucontrol=NULL, filtercontrol=NULL, kmcontrol=NULL, returncontrol=NULL,
-  ncores=1, trace=1, seed=NULL, target=target) {
+  ncores=1, trace=1, seed=NULL, target=NULL) {
   
   t1 <- Sys.time()
   set.seed(seed)
@@ -685,7 +685,7 @@ solve_game <- function(
           }
           currentEq <- try(getEquilibrium(Z = predmean,  equilibrium = equilibrium, nobj = nobj,
                                           expanded.indices=expanded.indices, n.s=n.s, kweights = NULL,
-                                          sorted = sorted, cross = cross, return.design = TRUE, Nadir=Nadir, Shadow=Shadow, target=target)) #, NSobs = NSobs)
+                                          sorted = sorted, cross = cross, return.design = TRUE, Nadir=Nadir, Shadow=Shadow)) #, NSobs = NSobs)
           
           if (typeof(currentEq)== "character") {
             cat("Unable to compute exploitation step, last model returned \n")
