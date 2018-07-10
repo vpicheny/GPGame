@@ -112,66 +112,68 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
     idx <- unique(c(J, idx))
   }
   
-  if (equilibrium %in% c("KSE", "CKSE") && type != "PND") {
+  if (equilibrium %in% c("KSE", "CKSE")) {
     #---------------------------------
     ## Add potential minimas of each objective based on EI (utopia), and EI x Pdom (nadir)
     IKS <- NULL # points of interest for KS (i.e., related to KS and Nadir)
-    # if (type == "PND") {
-    #   PNDom <- crit2
-    # } else {
-    if (max(Nadir) == Inf) {
-      PNDom <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp, target=target)
-    }
-    # }
-    if (is.null(target)) {
-      PFobs <- nonDom(Reduce(cbind, lapply(model, slot, "y")))
-      for (jj in 1:length(model)) {
-        discard <- which(predictions[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
-        if (Shadow[jj] == -Inf) {
+    if (type != "PND") {
+      if (max(Nadir) == Inf) {
+        PNDom <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp, target=target)
+      }
+      if (is.null(target)) {
+        PFobs <- nonDom(Reduce(cbind, lapply(model, slot, "y")))
+        for (jj in 1:length(model)) {
+          discard <- which(predictions[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
+          if (Shadow[jj] == -Inf) {
+            # EI(min) on each objective (to find potential Utopia points)
+            xcr <-  (min(model[[jj]]@y) - predictions[[jj]]$mean)/predictions[[jj]]$sd
+            test <- (min(model[[jj]]@y) - predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
+            test[discard] <- NA
+            IKS <- c(IKS, which.max(test))
+          }
+          # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
+          if (Nadir[jj] == Inf) {
+            xcr <-  -(max(PFobs[,jj]) - predictions[[jj]]$mean)/predictions[[jj]]$sd
+            test <- (-max(PFobs[,jj]) + predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
+            test[discard] <- NA
+            test <- test * PNDom
+            IKS <- c(IKS, which.max(test))
+          }
+        }
+      } else {
+        # Calibration mode
+        observations <- Reduce(cbind, lapply(model, slot, "y"))
+        PFobs <- nonDom((observations - matrix(rep(target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2)
+        for (jj in 1:length(model)) {
+          discard <- which(predictions[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
+          
           # EI(min) on each objective (to find potential Utopia points)
-          xcr <-  (min(model[[jj]]@y) - predictions[[jj]]$mean)/predictions[[jj]]$sd
-          test <- (min(model[[jj]]@y) - predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
+          zmin <- min((model[[jj]]@y - target[jj])^2)
+          mu <- predictions[[jj]]$mean - target[jj]
+          sigma   <- predictions[[jj]]$sd
+          a2 <- (sqrt(zmin) - mu)/sigma
+          a1 <- (-sqrt(zmin) - mu)/sigma
+          da2 <- dnorm(a2);   da1 <- dnorm(a1)
+          pa2 <- pnorm(a2);   pa1 <- pnorm(a1)
+          test <- (zmin - sigma^2 - mu^2) * (pa2 - pa1) + sigma^2 * (a2*da2 - a1*da1) + 2*mu*sigma*(da2 - da1)
           test[discard] <- NA
           IKS <- c(IKS, which.max(test))
+          
+          # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
+          if (Nadir[jj] == Inf) {
+            zmax <- max(PFobs[,jj])
+            b2 <- (sqrt(zmax) - mu)/sigma
+            b1 <- (-sqrt(zmax) - mu)/sigma
+            db2 <- dnorm(b2);   db1 <- dnorm(b1)
+            pb2 <- pnorm(b2);   pb1 <- pnorm(b1)
+            test <- (sigma^2 + mu^2 - zmax) * (1 - pb2 + pb1) + sigma^2 * (b2*db2 - b1*db1) + 2*mu*sigma*(db2 - db1)
+            test[discard] <- NA
+            test <- test * PNDom
+            IKS <- c(IKS, which.max(test))
+          }
         }
-        # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
-        if (Nadir[jj] == Inf) {
-          xcr <-  -(max(PFobs[,jj]) - predictions[[jj]]$mean)/predictions[[jj]]$sd
-          test <- (-max(PFobs[,jj]) + predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
-          test[discard] <- NA
-          test <- test * PNDom
-          IKS <- c(IKS, which.max(test))
-        }
-      }
-    } else {
-      # Calibration mode
-      observations <- Reduce(cbind, lapply(model, slot, "y"))
-      PFobs <- nonDom((observations - matrix(rep(target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2)
-      for (jj in 1:length(model)) {
-        discard <- which(predictions[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
-        
-        # EI(min) on each objective (to find potential Utopia points)
-        zmin <- min((model[[jj]]@y - target[jj])^2)
-        mu <- predictions[[jj]]$mean - target[jj]
-        sigma   <- predictions[[jj]]$sd
-        a2 <- (sqrt(zmin) - mu)/sigma
-        a1 <- (-sqrt(zmin) - mu)/sigma
-        da2 <- dnorm(a2);   da1 <- dnorm(a1)
-        pa2 <- pnorm(a2);   pa1 <- pnorm(a1)
-        test <- (zmin - sigma^2 - mu^2) * (pa2 - pa1) + sigma^2 * (a2*da2 - a1*da1) + 2*mu*sigma*(da2 - da1)
-        test[discard] <- NA
-        IKS <- c(IKS, which.max(test))
-        
-        # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
-        # if (Nadir[jj] == Inf) {
-        #   test <- PNDom      #TODOOOOOOOOOOOOOOOOOOOO
-        #   test[discard] <- NA
-        #   test <- test * PNDom
-        #   IKS <- c(IKS, which.max(test))
-        # }
       }
     }
-    
     idx <- unique(c(IKS, idx))
     #---------------------------------
     I <- idx[1:n.s.target]
