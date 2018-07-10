@@ -26,16 +26,20 @@ if(parallel) ncores <- detectCores() else ncores <- 1
 # Simple configuration: no filter, discretization is a 21x21 grid
 
 # Grid definition
-n.s <- rep(21, 2)
+n.s <- 400 #rep(21, 2)
 x.to.obj   <- c(1,2)
-gridtype <- 'cartesian'
-n.ite <- 8
+gridtype <- 'lhs' #'cartesian'
+n.ite <- 2
 target <- c(-10,-35)
 Nadir <- c(Inf, 100)
+
+filtercontrol <- list(nsimPoints=200, ncandPoints=100,
+                      filter=c("PND", "PND"))
 
 res <- solve_game(fun1, equilibrium = "KSE", crit = "sur", n.init=6, n.ite=n.ite,
                   d = 2, nobj=2, x.to.obj = x.to.obj,
                   integcontrol=list(n.s=n.s, gridtype=gridtype),
+                  filtercontrol=filtercontrol,
                   ncores = ncores, trace=1, seed=1, target=target, Nadir=Nadir) 
 
 # Get estimated equilibrium and corresponding pay-off
@@ -45,4 +49,4 @@ Poff <- res$Eq.poff
 # Draw results
 plotGame(res, equilibrium = "KSE", target=target, Nadir=Nadir) #Nadir=c(Inf, -20))
 
-plotGameGrid(fun=fun1, n.grid=21, target=target, equilibrium = "KSE", integcontrol=res$integcontrol, Nadir=Nadir) #Nadir=c(Inf, -20))
+# plotGameGrid(fun=fun1, n.grid=21, target=target, equilibrium = "KSE", integcontrol=res$integcontrol, Nadir=Nadir) #Nadir=c(Inf, -20))

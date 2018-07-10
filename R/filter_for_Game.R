@@ -51,14 +51,7 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
   }
   
   if (type == "PND") {
-    if (is.null(target)) {
-      # Proba of non-domination
-      crit <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp)
-    } else {
-      # Calibration mode
-      crit <- prob.of.non.domination.calib(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp, target=target)
-    }
-    
+    crit <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp, target=target)
     #---------------------------------
   } else if (type == "window") {
     crit <- rep(1, nrow(integ.pts))
@@ -127,13 +120,7 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
     #   PNDom <- crit2
     # } else {
     if (max(Nadir) == Inf) {
-      if (is.null(target)) {
-        # Proba of non-domination
-        PNDom <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp)
-      } else {
-        # Calibration mode
-        PNDom <- prob.of.non.domination.calib(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp, target=target)
-      }
+      PNDom <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp, target=target)
     }
     # }
     if (is.null(target)) {
@@ -157,7 +144,7 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
         }
       }
     } else {
-      
+      # Calibration mode
       observations <- Reduce(cbind, lapply(model, slot, "y"))
       PFobs <- nonDom((observations - matrix(rep(target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2)
       for (jj in 1:length(model)) {
@@ -176,12 +163,12 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
         IKS <- c(IKS, which.max(test))
         
         # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
-        if (Nadir[jj] == Inf) {
-          test <- 42      #TODOOOOOOOOOOOOOOOOOOOO
-          test[discard] <- NA
-          test <- test * PNDom
-          IKS <- c(IKS, which.max(test))
-        }
+        # if (Nadir[jj] == Inf) {
+        #   test <- PNDom      #TODOOOOOOOOOOOOOOOOOOOO
+        #   test[discard] <- NA
+        #   test <- test * PNDom
+        #   IKS <- c(IKS, which.max(test))
+        # }
       }
     }
     
