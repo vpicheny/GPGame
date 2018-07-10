@@ -20,6 +20,7 @@
 ##' @param nsamp number of samples to estimate the probability of non-domination, useful when \code{type=PND} and \code{nobj}>3.
 ##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
 ##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
+##' @param target a vector of target values for the objectives
 ##' @return List with two elements: \code{I} indices selected and \code{crit} the filter metric at all candidate points
 ##' @details If \code{type == "windows"}, points are ranked based on their distance to \code{option$window} (when it is a target vector),
 ##' or based on the probability that the response belongs to \code{option$window}.
@@ -28,7 +29,7 @@
 ##' @export
 filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="window", equilibrium="NE",
                             integcontrol, options = NULL, ncores = 1, random=TRUE, include.obs=FALSE,
-                            min.crit = 1e-12, nsamp = NULL, Nadir=NULL, Shadow=NULL) {
+                            min.crit = 1e-12, nsamp = NULL, Nadir=NULL, Shadow=NULL, target=NULL) {
   
   expanded.indices <- integcontrol$expanded.indices
   integ.pts <- integcontrol$integ.pts
@@ -50,21 +51,47 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
   }
   
   if (type == "PND") {
-    # Proba of non-domination
-    crit <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp)
+    if (is.null(target)) {
+      # Proba of non-domination
+      crit <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp)
+    } else {
+      # Calibration mode
+      crit <- prob.of.non.domination.calib(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp, target=target)
+    }
+    
     #---------------------------------
   } else if (type == "window") {
     crit <- rep(1, nrow(integ.pts))
-    if (is.null(nrow(options$window))) {
-      # Density at target
-      for (u in 1:length(model)) {
-        crit <- crit * dnorm( (options$window[u] - predictions[[u]]$mean)/predictions[[u]]$sd)
-      }
-    } else {
-      # Proba of being in a box
-      for (u in 1:length(model)) {
-        crit <- crit * ( pnorm( (options$window[2,u] - predictions[[u]]$mean)/predictions[[u]]$sd) -
-                           pnorm( (options$window[1,u] - predictions[[u]]$mean)/predictions[[u]]$sd) )
+    if (is.null(target)) {
+      if (is.null(nrow(options$window))) {
+        # Density at target
+        for (u in 1:length(model)) {
+          crit <- crit * dnorm( (options$window[u] - predictions[[u]]$mean)/predictions[[u]]$sd)
+        }
+      } else {
+        # Proba of being in a box
+        for (u in 1:length(model)) {
+          crit <- crit * ( pnorm( (options$window[2,u] - predictions[[u]]$mean)/predictions[[u]]$sd) -
+                             pnorm( (options$window[1,u] - predictions[[u]]$mean)/predictions[[u]]$sd) )
+        }
+      } else {
+        # Calibration mode
+        crit <- 42
+        if (is.null(nrow(options$window))) {
+          # Probability of being below target
+          # WINDOW refers to Y or Z= (Y-T)^2 ???? options$window[u] is written here for Z 
+          for (u in 1:length(model)) {
+            crit <- crit * (pnorm( (options$window[u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) - 
+              pnorm( (-options$window[u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd))
+          }
+        } else {
+          # Proba of being in a box
+          for (u in 1:length(model)) {
+            crit <- crit * (pnorm( (options$window[2,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) - 
+                              pnorm( (-options$window[2,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) -
+              pnorm( (options$window[1,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) + 
+                 pnorm( (-options$window[1,u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd))
+          }
       }
     }
     #---------------------------------
@@ -100,9 +127,16 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
     #   PNDom <- crit2
     # } else {
     if (max(Nadir) == Inf) {
-      PNDom <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp =nsamp)
+      if (is.null(target)) {
+        # Proba of non-domination
+        PNDom <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp)
+      } else {
+        # Calibration mode
+        PNDom <- prob.of.non.domination.calib(model=model, integration.points=integ.pts, predictions=predictions, nsamp=nsamp, target=target)
+      }
     }
     # }
+    if (is.null(target)) {
     PFobs <- nonDom(Reduce(cbind, lapply(model, slot, "y")))
     for (jj in 1:length(model)) {
       discard <- which(predictions[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
@@ -113,15 +147,44 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
         test[discard] <- NA
         IKS <- c(IKS, which.max(test))
       }
-      # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
-      if (Nadir[jj] == Inf) {
-        xcr <-  -(max(PFobs[,jj]) - predictions[[jj]]$mean)/predictions[[jj]]$sd
-        test <- (-max(PFobs[,jj]) + predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
+        # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
+        if (Nadir[jj] == Inf) {
+          xcr <-  -(max(PFobs[,jj]) - predictions[[jj]]$mean)/predictions[[jj]]$sd
+          test <- (-max(PFobs[,jj]) + predictions[[jj]]$mean)*pnorm(xcr) + predictions[[jj]]$sd * dnorm(xcr)
+          test[discard] <- NA
+          test <- test * PNDom
+          IKS <- c(IKS, which.max(test))
+        }
+      }
+    } else {
+
+      observations <- Reduce(cbind, lapply(model, slot, "y"))
+      PFobs <- nonDom((observations - matrix(rep(target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2)
+      for (jj in 1:length(model)) {
+        discard <- which(predictions[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
+        
+        # EI(min) on each objective (to find potential Utopia points)
+        zmin <- min((model[[jj]]@y - target[jj])^2)
+        mu <- predictions[[jj]]$mean - target[jj]
+        sigma   <- predictions[[jj]]$sd
+        a2 <- (sqrt(zmin) - mu)/sigma
+        a1 <- (-sqrt(zmin) - mu)/sigma
+        da2 <- dnorm(a2);   da1 <- dnorm(a1)
+        pa2 <- pnorm(a2);   pa1 <- pnorm(a1)
+        test <- (zmin - sigma^2 - mu^2) * (pa2 - pa1) + sigma^2 * (a2*da2 - a1*da1) + 2*mu*sigma*(da2 - da1)
         test[discard] <- NA
-        test <- test * PNDom
         IKS <- c(IKS, which.max(test))
+        
+        # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
+        if (Nadir[jj] == Inf) {
+          test <- 42      #TODOOOOOOOOOOOOOOOOOOOO
+          test[discard] <- NA
+          test <- test * PNDom
+          IKS <- c(IKS, which.max(test))
+        }
       }
     }
+    
     idx <- unique(c(IKS, idx))
     #---------------------------------
     I <- idx[1:n.s.target]

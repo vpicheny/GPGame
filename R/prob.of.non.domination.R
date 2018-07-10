@@ -53,7 +53,7 @@
 ## ' }
 ## ' @export
 
-prob.of.non.domination <- function(paretoFront=NULL, model=NULL, integration.points=NULL, predictions=NULL, nsamp = 100){
+prob.of.non.domination <- function(paretoFront=NULL, model=NULL, integration.points=NULL, predictions=NULL, nsamp = 100, target=NULL){
   ###########################################################################################
   # Computes the probability that integration points are non dominated by a given paretoFront
   # 2 or 3 objectives only
@@ -82,6 +82,8 @@ prob.of.non.domination <- function(paretoFront=NULL, model=NULL, integration.poi
     } else {
       observations <- Reduce(cbind, lapply(model, slot, "y"))
     }
+    if (!is.null(target)) observations <- (observations - matrix(rep(target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2
+    
     # paretoFront <- matrix(t(nondominated_points(t(observations))),ncol=n.obj)
     paretoFront <- nonDom(observations)
   }
@@ -92,7 +94,16 @@ prob.of.non.domination <- function(paretoFront=NULL, model=NULL, integration.poi
     predictions <- vector("list",n.obj)
     for (i in 1:n.obj) predictions[[i]] <- predict(object=model[[i]], newdata=integration.points, type="UK", checkNames=FALSE, cov.compute = FALSE, light.return = TRUE)
   }
-
+  if (!is.null(target)) {
+    # Calibration mode
+    samps <- NULL
+    for(j in 1:n.obj){
+      samps <- cbind(samps, (target[j] - rnorm(nsamp*n.integration.points, mean = predictions[[j]]$mean, predictions[[j]]$sd))^2)
+    }
+    idx <- nonDom(samps, paretoFront, return.idx=TRUE)
+    pn <- rowSums(matrix(tabulate(idx, nbins=nsamp*n.integration.points), n.integration.points))
+    return(pn/nsamp)
+  } else {
   # Precompute important quantities
   if(n.obj <= 3){
 
@@ -198,6 +209,7 @@ prob.of.non.domination <- function(paretoFront=NULL, model=NULL, integration.poi
 
     return(pn/nsamp)
   }
+}
 }
 
 

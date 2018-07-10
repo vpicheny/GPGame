@@ -59,6 +59,7 @@
 ##' @param seed to fix the random variable generator
 ##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
 ##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf} for the shadow).
+##' @param target a vector of target values for the objectives to use the calibration mode
 ##' @param ... additional parameter to be passed to \code{fun}
 ##' @return
 ##' A list with components:
@@ -218,7 +219,7 @@
 solve_game <- function(
   fun, ..., equilibrium="NE", crit="sur", model=NULL, n.init=NULL, n.ite, d, nobj, x.to.obj=NULL, noise.var = NULL,
   Nadir=NULL, Shadow=NULL, integcontrol=NULL, simucontrol=NULL, filtercontrol=NULL, kmcontrol=NULL, returncontrol=NULL,
-  ncores=1, trace=1, seed=NULL) {
+  ncores=1, trace=1, seed=NULL, target=target) {
   
   t1 <- Sys.time()
   set.seed(seed)
@@ -473,6 +474,10 @@ solve_game <- function(
       if (is.null(window) || crit != "sur") {
         # Special case for initialization - otherwise do not change the old "window" value
         predmean <- Reduce(cbind, lapply(pred, function(alist) alist$mean))
+        if (!is.null(target)) {
+          # Calibration mode
+          predmean <- (predmean - matrix(rep(target, nrow(predmean)), byrow=TRUE, nrow=nrow(predmean)))^2
+        }
         Eq_simu <- getEquilibrium(Z = predmean,  equilibrium = equilibrium, nobj = nobj, expanded.indices=expanded.indices,
                                   n.s=n.s, sorted = sorted, cross = cross, kweights = NULL, Nadir=Nadir, Shadow=Shadow)#, NSobs = NSobs)
         if(nrow(Eq_simu) < 1 || all(is.na(Eq_simu))){
@@ -498,7 +503,7 @@ solve_game <- function(
       
       filt <- filter_for_Game(n.s.target = pmin(n.s, round(nsimPoints^(1/length(n.s)))), integcontrol=integcontrol,
                               model = model, predictions=pred, type=simu.filter, options = options, random=randomFilter[1],
-                              include.obs=TRUE, ncores = ncores, equilibrium=equilibrium, nsamp=filtercontrol$nsamp, Nadir=Nadir, Shadow=Shadow)
+                              include.obs=TRUE, ncores = ncores, equilibrium=equilibrium, nsamp=filtercontrol$nsamp, Nadir=Nadir, target=target)
       I <- filt$I
     } else {
       I <- 1:nrow(integ.pts)
@@ -640,7 +645,7 @@ solve_game <- function(
         J <- filter_for_Game(n.s.target = pmin(my.n.s, round(ncandPoints^(1/length(my.n.s)))), integcontrol=my.integcontrol,
                              model = model, predictions=my.pred, type=cand.filter, options = options,
                              random=randomFilter[2], include.obs=FALSE, ncores = ncores, 
-                             equilibrium=equilibrium, nsamp=filtercontrol$nsamp, Nadir=Nadir, Shadow=Shadow)$I
+                             equilibrium=equilibrium, nsamp=filtercontrol$nsamp, Nadir=Nadir, Shadow=Shadow, target=target)$I
       }
     }
     
@@ -674,9 +679,13 @@ solve_game <- function(
       if (ii == n.ite && returncontrol$force.exploit.last) {
         if (equilibrium %in% c("KSE", "CKSE")) {
           predmean <- Reduce(cbind, lapply(pred, function(alist) alist$mean))
+          if (!is.null(target)) {
+            # Calibration mode
+            predmean <- (predmean - matrix(rep(target, nrow(predmean)), byrow=TRUE, nrow=nrow(predmean)))^2
+          }
           currentEq <- try(getEquilibrium(Z = predmean,  equilibrium = equilibrium, nobj = nobj,
                                           expanded.indices=expanded.indices, n.s=n.s, kweights = NULL,
-                                          sorted = sorted, cross = cross, return.design = TRUE, Nadir=Nadir, Shadow=Shadow)) #, NSobs = NSobs)
+                                          sorted = sorted, cross = cross, return.design = TRUE, Nadir=Nadir, Shadow=Shadow, target=target)) #, NSobs = NSobs)
           
           if (typeof(currentEq)== "character") {
             cat("Unable to compute exploitation step, last model returned \n")
@@ -698,7 +707,7 @@ solve_game <- function(
           Jplus <- try(unlist(mclapply(X=J, FUN=crit_SUR_Eq, model=model, integcontrol=my.integcontrol,
                                        Simu=my.Simu, equilibrium = equilibrium, precalc.data=precalc.data,
                                        n.ynew=n.ynew, IS=IS, cross=cross, kweights = kweights,
-                                       mc.cores = ncores, Nadir=Nadir, Shadow=Shadow)))
+                                       mc.cores = ncores, Nadir=Nadir, Shadow=Shadow, target=target)))
         } else if (crit == 'pex') {
           Jplus <- try(-crit_PNash(idx=J, integcontrol=my.integcontrol,
                                    type = 'exact', model = model, ncores = ncores))
@@ -769,6 +778,8 @@ solve_game <- function(
       
       if (track.Eq == "empirical") {
         observations <- Reduce(cbind, lapply(model, slot, "y"))
+        if (!is.null(target)) observations <- (observations - matrix(rep(target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2
+        
         currentEq <- try(getEquilibrium(Z=observations, equilibrium = equilibrium, nobj=nobj,
                                         return.design=TRUE, cross=cross, kweights = kweights, Nadir=Nadir, Shadow=Shadow))
         
@@ -795,6 +806,10 @@ solve_game <- function(
       } else {
         ## Eq of the GP predictive means
         predmean <- Reduce(cbind, lapply(pred, function(alist) alist$mean))
+        if (!is.null(target)) {
+          # Calibration mode
+          predmean <- (predmean - matrix(rep(target, nrow(predmean)), byrow=TRUE, nrow=nrow(predmean)))^2
+        }
         currentEq <- try(getEquilibrium(Z = predmean,  equilibrium = equilibrium, nobj = nobj,
                                         expanded.indices=expanded.indices, n.s=n.s, kweights = NULL,
                                         sorted = sorted, cross = cross, return.design = T, Nadir=Nadir, Shadow=Shadow)) #, NSobs = NSobs)
