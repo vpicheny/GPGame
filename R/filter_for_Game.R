@@ -20,7 +20,7 @@
 ##' @param nsamp number of samples to estimate the probability of non-domination, useful when \code{type=PND} and \code{nobj}>3.
 ##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
 ##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
-##' @param target a vector of target values for the objectives
+##' @param target a vector of target values for the objectives to use the calibration mode
 ##' @return List with two elements: \code{I} indices selected and \code{crit} the filter metric at all candidate points
 ##' @details If \code{type == "windows"}, points are ranked based on their distance to \code{option$window} (when it is a target vector),
 ##' or based on the probability that the response belongs to \code{option$window}.

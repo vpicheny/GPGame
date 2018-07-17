@@ -24,7 +24,8 @@
 ##' @param kweights kriging weights for \code{CKS} (TESTING)
 ##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
 ##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf} for the shadow).
-##' @param target a vector of target values for the objectives
+##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives and 
+##' \code{log} a Boolean stating if a log transformation should be used or not.
 ##' @export
 ##' @seealso \code{\link[GPGame]{crit_PNash}} for an alternative infill criterion
 ##' @references
@@ -96,7 +97,7 @@
 ##' }
 ##'
 crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equilibrium,
-                        n.ynew=NULL, cross=FALSE, IS=FALSE, plot=FALSE, kweights = NULL, Nadir = NULL, Shadow = NULL, target=NULL){
+                        n.ynew=NULL, cross=FALSE, IS=FALSE, plot=FALSE, kweights = NULL, Nadir = NULL, Shadow = NULL, calibcontrol=NULL){
 
   # if (is.null(cand.pts)) cand.pts <- integ.pts
 
@@ -156,7 +157,7 @@ crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equil
     if (plot) plot(NA, xlim=c(-200, 100), ylim=c(-50,-10))
     
     Gamma <- apply(Ynew2, 1, computeGamma, Simu=Simu, lambda=lambda, Ynew=Ynew1, n.s=n.s, kweights = kweights, Nadir=Nadir, Shadow = Shadow,
-                   expanded.indices=expanded.indices, cross=cross, sorted=sorted, equilibrium = equilibrium, plot=plot, target=target)
+                   expanded.indices=expanded.indices, cross=cross, sorted=sorted, equilibrium = equilibrium, plot=plot, calibcontrol=calibcontrol)
 
     return(mean(Gamma, na.rm =TRUE))
   } else {
@@ -178,13 +179,17 @@ crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equil
 ## ' @param plot if TRUE, draws equilibria samples (should always be turned off)
 ## ' @param kweights kriging weights for \code{CKS} (TESTING)
 computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kweights = NULL, Nadir = NULL, Shadow = NULL,
-                         expanded.indices = NULL, cross = FALSE, sorted = NULL, plot=FALSE, target=NULL){
+                         expanded.indices = NULL, cross = FALSE, sorted = NULL, plot=FALSE, calibcontrol=NULL){
 
   if (is.null(sorted)) {
     if (is.null(expanded.indices)) sorted <- FALSE
     else                           sorted <- !is.unsorted(expanded.indices[,nobj])
   }
 
+  if (!is.null(calibcontrol)) {
+    if (is.null(calibcontrol$log)) calibcontrol$log <- FALSE
+  }
+  
   nobj <- length(ynew)
   nsim <- ncol(Simu)/nobj
 
@@ -192,12 +197,15 @@ computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kwei
     Simu[,(1:nsim)+(u-1)*nsim] <- Simu[,(1:nsim)+(u-1)*nsim] + tcrossprod(lambda[,u], rep(ynew[u], nsim) - Ynew[,u])
   }
 
-  if (!is.null(target)) {
+  if (!is.null(calibcontrol$target)) {
     # Calibration mode
     # print(str(Simu))
     # print(str(matrix(rep(target, nrow(Simu)), byrow=TRUE, nrow=nrow(Simu))))
-    Target <- rep(target, each=nsim)
+    Target <- rep(calibcontrol$target, each=nsim)
     Simu <- (Simu - matrix(rep(Target, nrow(Simu)), byrow=TRUE, nrow=nrow(Simu)))^2
+    if (calibcontrol$log) {
+      Simu <- log(Simu)
+    }
   }
   # nsim, nobj
 
