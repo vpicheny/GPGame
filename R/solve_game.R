@@ -795,7 +795,7 @@ solve_game <- function(
       if (track.Eq == "empirical") {
         observations <- Reduce(cbind, lapply(model, slot, "y"))
         if (!is.null(calibcontrol$target)) {
-          observations <- (observations - matrix(rep(target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2
+          observations <- (observations - matrix(rep(calibcontrol$target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2
           if (calibcontrol$log) {
             observations <- log(observations)
           }
@@ -829,7 +829,7 @@ solve_game <- function(
         predmean <- Reduce(cbind, lapply(pred, function(alist) alist$mean))
         if (!is.null(calibcontrol$target)) {
           # Calibration mode
-          predmean <- (predmean - matrix(rep(target, nrow(predmean)), byrow=TRUE, nrow=nrow(predmean)))^2
+          predmean <- (predmean - matrix(rep(calibcontrol$target, nrow(predmean)), byrow=TRUE, nrow=nrow(predmean)))^2
           if (calibcontrol$log) {
             predmean <- log(predmean)
           }
