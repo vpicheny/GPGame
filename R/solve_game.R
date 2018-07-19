@@ -494,18 +494,28 @@ solve_game <- function(
         }
         Eq_simu <- getEquilibrium(Z = predmean,  equilibrium = equilibrium, nobj = nobj, expanded.indices=expanded.indices,
                                   n.s=n.s, sorted = sorted, cross = cross, kweights = NULL, Nadir=Nadir, Shadow=Shadow)#, NSobs = NSobs)
-        if(nrow(Eq_simu) < 1 || all(is.na(Eq_simu))){
+        
+        if(nrow(Eq_simu) < 1 || all(is.na(Eq_simu))) {
           ## if no window has been defined in previous iterations, use the mean, otherwise keep the old one
-          if(is.null(window)){
+          if (is.null(window)){
             window <- colMeans(observations)
-          }
-        } else if(nrow(Eq_simu) == 1) {
+            if (!is.null(calibcontrol$target)) {
+              window <- (window - target)^2
+            }
+          } 
+        } else if (nrow(Eq_simu) == 1) {
           window <- as.vector(Eq_simu)
         } else {
           window <- colMeans(Eq_simu, na.rm = TRUE)
         }
+        
+        if (!is.null(calibcontrol$target)) { 
+          if (calibcontrol$log){
+            window <- exp(window) - calibcontrol$offset
+          }
+        }
+        options <- list(window = window)
       }
-      options <- list(window = window)
     } else if (simu.filter == "Pnash") {
       options <- list(method=PnashMethod, nsim=100)
     }
@@ -517,42 +527,12 @@ solve_game <- function(
       
       filt <- filter_for_Game(n.s.target = pmin(n.s, round(nsimPoints^(1/length(n.s)))), integcontrol=integcontrol,
                               model = model, predictions=pred, type=simu.filter, options = options, random=randomFilter[1],
-                              include.obs=TRUE, ncores = ncores, equilibrium=equilibrium, nsamp=filtercontrol$nsamp, Nadir=Nadir, target=calibcontrol$target)
+                              include.obs=TRUE, ncores = ncores, equilibrium=equilibrium, nsamp=filtercontrol$nsamp, Nadir=Nadir, 
+                              target=calibcontrol$target)
       I <- filt$I
     } else {
       I <- 1:nrow(integ.pts)
     }
-    
-    # ## Add potential minimas of each objective based on EI, and EI x Pdom
-    # if (equilibrium == "KSE" && simu.filter != 'none'){
-    #   IKS <- NULL # points of interest for KS (i.e., related to KS and Nadir)
-    #   
-    #   ## EI on each objective
-    #   for (jj in 1:nobj) {
-    #     # Based on DiceOptim
-    #     xcr <-  (min(model[[jj]]@y) - pred[[jj]]$mean)/pred[[jj]]$sd
-    #     test <- (min(model[[jj]]@y) - pred[[jj]]$mean)*pnorm(xcr) + pred[[jj]]$sd * dnorm(xcr)
-    #     test[which(pred[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)] <- NA
-    #     IKS <- c(IKS, which.max(test))
-    #   }
-    #   
-    #   ## EI x Pdom on each objective (to find potential Nadir points)
-    #   PNDom <- prob.of.non.domination(paretoFront = PFobs,
-    #                                   model = model, integration.points = integ.pts, predictions = pred,
-    #                                   nsamp = filtercontrol$nsamp)
-    #   for (jj in 1:nobj) {
-    #     # Based on DiceOptim
-    #     xcr <-  -(max(PFobs[,jj]) - pred[[jj]]$mean)/pred[[jj]]$sd
-    #     test <- (-max(PFobs[,jj]) + pred[[jj]]$mean)*pnorm(xcr) + pred[[jj]]$sd * dnorm(xcr)
-    #     test[which(pred[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)] <- NA
-    #     test <- test * PNDom
-    #     IKS <- c(IKS, which.max(test))
-    #   }
-    #   
-    #   I <- unique(c(I, IKS))
-    # } else {
-    #   IKS <- NULL
-    # }
     
     my.integ.pts <- integ.pts[I,]
     my.expanded.indices <- expanded.indices[I,]
@@ -630,7 +610,19 @@ solve_game <- function(
     ##################################################################
     cand.pts <- my.integ.pts
     if ((simu.filter == "window" && crit == 'sur') || cand.filter == "window") {
-      Eq_simu <- getEquilibrium(my.Simu, equilibrium = equilibrium, nobj = nobj, expanded.indices=my.expanded.indices,
+      
+      if (!is.null(calibcontrol$target)) {
+        # Calibration mode
+        Target <- rep(calibcontrol$target, each=n.sim)
+        my.Simu2 <- (my.Simu - matrix(rep(Target, nrow(my.Simu)), byrow=TRUE, nrow=nrow(my.Simu)))^2
+        if (calibcontrol$log) {
+          my.Simu2 <- log(my.Simu2 + calibcontrol$offset)
+        }
+      } else {
+        my.Simu2 <- my.Simu
+      }
+      
+      Eq_simu <- getEquilibrium(my.Simu2, equilibrium = equilibrium, nobj = nobj, expanded.indices=my.expanded.indices,
                                 n.s=my.n.s, sorted = sorted, cross = cross, kweights = kweights, Nadir=Nadir, Shadow=Shadow)
       # ,NSobs = matrix(do.call("rbind", rep(list(NSobs), n.sim)), nrow=nrow(NSobs)))
       Eq_simu <- Eq_simu[which(!is.na(Eq_simu[,1])),, drop = FALSE]
@@ -638,6 +630,9 @@ solve_game <- function(
       temp <- apply(Eq_simu, 2, range, na.rm = TRUE)
       
       if (!any(is.na(temp))) window <- temp
+      
+      if (!is.null(calibcontrol$target)) if (calibcontrol$log)   window <- exp(window) - calibcontrol$offset
+      
       options <- list(window = window)
     } else if (cand.filter == "Pnash") {
       options <- list(method=PnashMethod, nsim = 100)
@@ -662,11 +657,6 @@ solve_game <- function(
                              equilibrium=equilibrium, nsamp=filtercontrol$nsamp, Nadir=Nadir, Shadow=Shadow, target=calibcontrol$target)$I
       }
     }
-    
-    # ## Add extremal points for KSE / CKSE
-    # if(!is.null(IKS)){
-    #   J <- unique(c(J, which(I %in% IKS)))
-    # }
     
     ## Remove already evaluated designs from candidates
     if((ii > 1) && (ii<(n.ite+1))){

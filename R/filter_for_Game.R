@@ -75,7 +75,7 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
       # Calibration mode
       if (is.null(nrow(options$window))) {
         # Probability of being below target
-        # WINDOW refers to Y or Z= (Y-T)^2 ???? options$window[u] is written here for Z 
+        # WINDOW refers to Z= (Y-T)^2
         for (u in 1:length(model)) {
           crit <- crit * (pnorm( (options$window[u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd) - 
                             pnorm( (-options$window[u] + target[u] - predictions[[u]]$mean)/predictions[[u]]$sd))

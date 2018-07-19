@@ -200,15 +200,12 @@ computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kwei
 
   if (!is.null(calibcontrol$target)) {
     # Calibration mode
-    # print(str(Simu))
-    # print(str(matrix(rep(target, nrow(Simu)), byrow=TRUE, nrow=nrow(Simu))))
     Target <- rep(calibcontrol$target, each=nsim)
     Simu <- (Simu - matrix(rep(Target, nrow(Simu)), byrow=TRUE, nrow=nrow(Simu)))^2
     if (calibcontrol$log) {
       Simu <- log(Simu + calibcontrol$offset)
     }
   }
-  # nsim, nobj
 
   NE_simu_new <- getEquilibrium(Simu, equilibrium = equilibrium, nobj=nobj, n.s=n.s, expanded.indices=expanded.indices,
                                 sorted=sorted, cross=cross, kweights = kweights, Nadir=Nadir, Shadow = Shadow)

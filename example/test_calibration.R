@@ -29,7 +29,7 @@ if(parallel) ncores <- detectCores() else ncores <- 1
 n.s <- rep(21, 2)
 x.to.obj   <- c(1,2)
 gridtype <- 'cartesian'
-n.ite <- 6
+n.ite <- 8
 target <- c(-10,-35)
 Nadir <- c(Inf, log(100))
 
@@ -42,7 +42,7 @@ res <- solve_game(fun1, equilibrium = "KSE", crit = "sur", n.init=6, n.ite=n.ite
                   d = 2, nobj=2, x.to.obj = x.to.obj,
                   integcontrol=list(n.s=n.s, gridtype=gridtype),
                   filtercontrol=filtercontrol,
-                  ncores = ncores, trace=1, seed=1, calibcontrol=calibcontrol) #, target=target, Nadir=Nadir) 
+                  ncores = ncores, trace=3, seed=1, calibcontrol=calibcontrol) #, target=target, Nadir=Nadir) 
 
 # Get estimated equilibrium and corresponding pay-off
 NE <- res$Eq.design
