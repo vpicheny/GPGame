@@ -24,8 +24,8 @@
 ##' @param kweights kriging weights for \code{CKS} (TESTING)
 ##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
 ##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf} for the shadow).
-##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives and 
-##' \code{log} a Boolean stating if a log transformation should be used or not.
+##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
+##' \code{log} a Boolean stating if a log transformation should be used or not aand , and \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
 ##' @export
 ##' @seealso \code{\link[GPGame]{crit_PNash}} for an alternative infill criterion
 ##' @references
@@ -188,6 +188,7 @@ computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kwei
 
   if (!is.null(calibcontrol)) {
     if (is.null(calibcontrol$log)) calibcontrol$log <- FALSE
+    if (is.null(calibcontrol$offset)) calibcontrol$offset <- 0
   }
   
   nobj <- length(ynew)
@@ -204,7 +205,7 @@ computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kwei
     Target <- rep(calibcontrol$target, each=nsim)
     Simu <- (Simu - matrix(rep(Target, nrow(Simu)), byrow=TRUE, nrow=nrow(Simu)))^2
     if (calibcontrol$log) {
-      Simu <- log(Simu)
+      Simu <- log(Simu + calibcontrol$offset)
     }
   }
   # nsim, nobj

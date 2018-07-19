@@ -45,6 +45,9 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
   if ((length(n.s.target) == 1) && (equilibrium %in% c("NE", "NKSE")))
     n.s.target <- rep(round(n.s.target^-nobj), nobj)
   
+  if ((length(n.s.target) != 1) && (equilibrium %in% c("KSE", "CKSE")))
+    n.s.target <- prod(n.s.target)
+  
   if (equilibrium %in% c("KSE", "CKSE") && type=="Pnash") {
     cat("Pnash filter not available for KSE; switching to PND \n")
     type <- "PND"

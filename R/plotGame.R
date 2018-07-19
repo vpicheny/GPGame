@@ -9,8 +9,9 @@
 ##' @param fun.grid optional matrix containing the values of \code{fun} at \code{integ.pts}. Computed if not provided.
 ##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
 ##' the other coordinates can be set to \code{Inf} (resp. \code{-Inf}.
-##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives and 
-##' \code{log} a Boolean stating if a log transformation should be used or not.
+##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
+##' \code{log} a Boolean stating if a log transformation should be used or not and 
+##' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
 ##' @param ... further arguments to \code{fun}
 ##' @return list returned by invisible() with elements:
 ##' \itemize{
@@ -55,6 +56,7 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
 
   if (!is.null(calibcontrol)) {
     if (is.null(calibcontrol$log)) calibcontrol$log <- FALSE
+    if (is.null(calibcontrol$offset)) calibcontrol$offset <- 0
   }
   
   expanded.indices <- integcontrol$expanded.indices
@@ -96,7 +98,7 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
     # Calibration mode
     fun.grid <- (fun.grid - matrix(rep(calibcontrol$target, nrow(fun.grid)), byrow=TRUE, nrow=nrow(fun.grid)))^2
     if (calibcontrol$log) {
-      fun.grid <- log(fun.grid)
+      fun.grid <- log(fun.grid + calibcontrol$offset)
     }
   }
   
@@ -255,12 +257,18 @@ plotGame <- function(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE, simus =
     }
     if (is.null(integcontrol$n.s)) integcontrol$n.s <- apply(res$integcontrol$expanded.indices, 2, max)
     
+    # Check calibcontrol
+    if (!is.null(calibcontrol)) {
+      if (is.null(calibcontrol$log)) calibcontrol$log <- FALSE
+      if (is.null(calibcontrol$offset)) calibcontrol$offset <- 0
+    }
+    
     if (!is.null(calibcontrol$target)) {
       # Calibration mode
       Target <- rep(calibcontrol$target, each=n.sim)
       simus <- (simus - matrix(rep(Target, nrow(simus)), byrow=TRUE, nrow=nrow(simus)))^2
       if (calibcontrol$log) {
-        simus <- log(simus)
+        simus <- log(simus + calibcontrol$offset)
       }
     }
     
@@ -275,8 +283,8 @@ plotGame <- function(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE, simus =
     res$model[[1]]@y <- (res$model[[1]]@y - calibcontrol$target[1])^2
     res$model[[2]]@y <- (res$model[[2]]@y - calibcontrol$target[2])^2
     if (calibcontrol$log) {
-      res$model[[1]]@y <- log(res$model[[1]]@y)
-      res$model[[2]]@y <- log(res$model[[2]]@y)
+      res$model[[1]]@y <- log(res$model[[1]]@y + calibcontrol$offset)
+      res$model[[2]]@y <- log(res$model[[2]]@y + calibcontrol$offset)
     }
   }
   

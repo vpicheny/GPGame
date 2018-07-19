@@ -59,8 +59,8 @@
 ##' @param seed to fix the random variable generator
 ##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
 ##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf} for the shadow).
-##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives and 
-##' \code{log} a Boolean stating if a log transformation should be used or not.
+##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
+##' \code{log} a Boolean stating if a log transformation should be used or not, and \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
 ##' @param ... additional parameter to be passed to \code{fun}
 ##' @return
 ##' A list with components:
@@ -309,6 +309,7 @@ solve_game <- function(
       return(NA)
     } 
     if (is.null(calibcontrol$log)) calibcontrol$log <- FALSE
+    if (is.null(calibcontrol$offset)) calibcontrol$offset <- 0
   }
   
   if (trace>0) cat("--------------------------\n Starting", equilibrium, "search with:", "\n",
@@ -488,7 +489,7 @@ solve_game <- function(
           # Calibration mode
           predmean <- (predmean - matrix(rep(calibcontrol$target, nrow(predmean)), byrow=TRUE, nrow=nrow(predmean)))^2
           if (calibcontrol$log) {
-            predmean <- log(predmean)
+            predmean <- log(predmean + calibcontrol$offset)
           }
         }
         Eq_simu <- getEquilibrium(Z = predmean,  equilibrium = equilibrium, nobj = nobj, expanded.indices=expanded.indices,
@@ -696,7 +697,7 @@ solve_game <- function(
             # Calibration mode
             predmean <- (predmean - matrix(rep(calibcontrol$target, nrow(predmean)), byrow=TRUE, nrow=nrow(predmean)))^2
             if (calibcontrol$log) {
-              predmean <- log(predmean)
+              predmean <- log(predmean + calibcontrol$offset)
             }
           }
           currentEq <- try(getEquilibrium(Z = predmean,  equilibrium = equilibrium, nobj = nobj,
@@ -797,7 +798,7 @@ solve_game <- function(
         if (!is.null(calibcontrol$target)) {
           observations <- (observations - matrix(rep(calibcontrol$target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2
           if (calibcontrol$log) {
-            observations <- log(observations)
+            observations <- log(observations + calibcontrol$offset)
           }
         }
         
@@ -831,7 +832,7 @@ solve_game <- function(
           # Calibration mode
           predmean <- (predmean - matrix(rep(calibcontrol$target, nrow(predmean)), byrow=TRUE, nrow=nrow(predmean)))^2
           if (calibcontrol$log) {
-            predmean <- log(predmean)
+            predmean <- log(predmean + calibcontrol$offset)
           }
         }
         currentEq <- try(getEquilibrium(Z = predmean,  equilibrium = equilibrium, nobj = nobj,

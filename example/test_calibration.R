@@ -26,9 +26,9 @@ if(parallel) ncores <- detectCores() else ncores <- 1
 # Simple configuration: no filter, discretization is a 21x21 grid
 
 # Grid definition
-n.s <- 400 #rep(21, 2)
+n.s <- rep(21, 2)
 x.to.obj   <- c(1,2)
-gridtype <- 'lhs' #'cartesian'
+gridtype <- 'cartesian'
 n.ite <- 6
 target <- c(-10,-35)
 Nadir <- c(Inf, log(100))
@@ -36,7 +36,7 @@ Nadir <- c(Inf, log(100))
 filtercontrol <- list(nsimPoints=200, ncandPoints=100,
                       filter=c("window", "window"))
 
-calibcontrol <- list(target=target, log=TRUE)
+calibcontrol <- list(target=target, log=TRUE, offset=0.01)
 
 res <- solve_game(fun1, equilibrium = "KSE", crit = "sur", n.init=6, n.ite=n.ite,
                   d = 2, nobj=2, x.to.obj = x.to.obj,
