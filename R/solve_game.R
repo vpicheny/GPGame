@@ -500,7 +500,7 @@ solve_game <- function(
           if (is.null(window)){
             window <- colMeans(observations)
             if (!is.null(calibcontrol$target)) {
-              window <- (window - target)^2
+              window <- (window - calibcontrol$target)^2
             }
           } 
         } else if (nrow(Eq_simu) == 1) {
