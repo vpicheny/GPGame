@@ -201,6 +201,7 @@ computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kwei
   if (!is.null(calibcontrol$target)) {
     # Calibration mode
     Target <- rep(calibcontrol$target, each=nsim)
+    calibcontrol$Y <- Simu
     Simu <- (Simu - matrix(rep(Target, nrow(Simu)), byrow=TRUE, nrow=nrow(Simu)))^2
     if (calibcontrol$log) {
       Simu <- log(Simu + calibcontrol$offset)
@@ -208,7 +209,7 @@ computeGamma <- function(ynew, Simu, lambda, equilibrium, Ynew, n.s = NULL, kwei
   }
 
   NE_simu_new <- getEquilibrium(Simu, equilibrium = equilibrium, nobj=nobj, n.s=n.s, expanded.indices=expanded.indices,
-                                sorted=sorted, cross=cross, kweights = kweights, Nadir=Nadir, Shadow = Shadow)
+                                sorted=sorted, cross=cross, kweights = kweights, Nadir=Nadir, Shadow = Shadow, calibcontrol=calibcontrol)
 
   # Remove simulations without equilibrium
   NE_simu_new <- NE_simu_new[which(!is.na(NE_simu_new[,1])),, drop = FALSE]

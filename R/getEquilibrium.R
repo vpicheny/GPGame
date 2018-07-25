@@ -13,6 +13,9 @@
 ##' @param kweights kriging weights for \code{CKS} (TESTING)
 ## ' @param NSobs Nadir and Shadow points of the observations (useful for \code{KSE} in the non-noisy case), number of columns must match with \code{Z}
 ##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir and/or shadow point for \code{KSE}. Some coordinates can be set to \code{Inf} (resp. -\code{Inf}).
+##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
+##' \code{log} a Boolean stating if a log transformation should be used or not and 
+##' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
 ##' @details If \code{nsim=1}, each line of \code{Z} contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
 ##' The position of the strategy \code{s} in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim>1}, (vectorized call) \code{Z} contains
 ##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
@@ -94,7 +97,7 @@
 ##'              equilibrium = "NKSE")
 ##' }
 getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj=2, n.s, expanded.indices=NULL, return.design=FALSE,
-                           sorted=FALSE, cross=FALSE, kweights = NULL, Nadir=NULL, Shadow=NULL){
+                           sorted=FALSE, cross=FALSE, kweights = NULL, Nadir=NULL, Shadow=NULL, calibcontrol=NULL){
   #### Choose appropriate function ###################
   if (equilibrium=="NE"){
     return(getNashEquilibrium(Z = Z, nobj = nobj, n.s = n.s, expanded.indices = expanded.indices, return.design = return.design, sorted = sorted, cross = cross))
@@ -103,7 +106,7 @@ getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj
     # return(getKSequilibrium(Z = rbind(Z, NSobs), nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross))
   } else if (equilibrium=="CKSE"){
     return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross,
-                            copula=TRUE, kweights = kweights))
+                            copula=TRUE, kweights = kweights, calibcontrol=calibcontrol))
   } else if (equilibrium=="NKSE") {
     return(getNKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, expanded.indices = expanded.indices, return.design = return.design, sorted = sorted, cross = cross))
   } else {
@@ -251,13 +254,16 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' @param kweights kriging weights for \code{CKS} (TESTING)
 ##' @param Nadir,Shadow optional vectors of size \code{nobj} to fix the Nadir and/or Shadow to a preset value. If only a subset of values needs to be defined, 
 ##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
+##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
+##' \code{log} a Boolean stating if a log transformation should be used or not and 
+##' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
 ##' @param ... not used, for compatibility
 ##' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
 ##' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
 ##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
 ##' @noRd
 ##' @importFrom stats var
-getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, ...){
+getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
 
   nsim <- ncol(Z) / nobj
 
@@ -291,7 +297,19 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
       if (!is.null(kweights)){
         Zrand <- matrix(NA, nrow = nrow(kweights[[1]]$kn), ncol = length(J))
         for(jj in 1:length(J)) {
-          Zrand[,jj] <- kweights[[jj]]$kn %*% (kweights[[jj]]$Knn %*% Z[,J[jj]])
+          if (!is.null(calibcontrol$target)) {
+            # Calibration mode
+            Zrand[,jj] <- kweights[[jj]]$kn %*% (kweights[[jj]]$Knn %*% calibcontrol$Y[,J[jj]])
+            # print(str(Zrand[,jj]))
+            # print(calibcontrol$target)
+            Zrand[,jj] <- (Zrand[,jj] - calibcontrol$target[jj])^2
+          if (calibcontrol$log) {
+            Zrand[,jj] <- log(Zrand[,jj] + calibcontrol$offset)
+            }
+          } else {
+            # Regular mode
+            Zrand[,jj] <- kweights[[jj]]$kn %*% (kweights[[jj]]$Knn %*% Z[,J[jj]])
+          }
         }
 
         # Irand <- which(!is_dominated(t(Zrand)))

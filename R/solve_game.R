@@ -618,12 +618,14 @@ solve_game <- function(
         if (calibcontrol$log) {
           my.Simu2 <- log(my.Simu2 + calibcontrol$offset)
         }
+        calibcontrol$Y <- my.Simu
       } else {
         my.Simu2 <- my.Simu
       }
       
       Eq_simu <- getEquilibrium(my.Simu2, equilibrium = equilibrium, nobj = nobj, expanded.indices=my.expanded.indices,
-                                n.s=my.n.s, sorted = sorted, cross = cross, kweights = kweights, Nadir=Nadir, Shadow=Shadow)
+                                n.s=my.n.s, sorted = sorted, cross = cross, kweights = kweights, Nadir=Nadir, Shadow=Shadow,
+                                calibcontrol=calibcontrol)
       # ,NSobs = matrix(do.call("rbind", rep(list(NSobs), n.sim)), nrow=nrow(NSobs)))
       Eq_simu <- Eq_simu[which(!is.na(Eq_simu[,1])),, drop = FALSE]
       Jnres[ii] <- determinant(cov(Eq_simu), logarithm = TRUE)[[1]][1]
@@ -786,14 +788,15 @@ solve_game <- function(
       if (track.Eq == "empirical") {
         observations <- Reduce(cbind, lapply(model, slot, "y"))
         if (!is.null(calibcontrol$target)) {
-          observations <- (observations - matrix(rep(calibcontrol$target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2
+          observations2 <- (observations - matrix(rep(calibcontrol$target, nrow(observations)), byrow=TRUE, nrow=nrow(observations)))^2
           if (calibcontrol$log) {
-            observations <- log(observations + calibcontrol$offset)
+            observations2 <- log(observations2 + calibcontrol$offset)
           }
+          calibcontrol$Y <- observations
         }
         
-        currentEq <- try(getEquilibrium(Z=observations, equilibrium = equilibrium, nobj=nobj,
-                                        return.design=TRUE, cross=cross, kweights = kweights, Nadir=Nadir, Shadow=Shadow))
+        currentEq <- try(getEquilibrium(Z=observations2, equilibrium = equilibrium, nobj=nobj,
+                                        return.design=TRUE, cross=cross, kweights = kweights, Nadir=Nadir, Shadow=Shadow, calibcontrol=calibcontrol))
         
       } else if (track.Eq %in% c("psim", "pex")) {
         
