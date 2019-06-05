@@ -61,6 +61,7 @@
 ##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf} for the shadow).
 ##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
 ##' \code{log} a Boolean stating if a log transformation should be used or not, and \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
+##' @param freq.exploit an optional integer to force exploitation (i.e. evaluation of the predicted equilibrium) every \code{freq.exploit} iterations
 ##' @param ... additional parameter to be passed to \code{fun}
 ##' @return
 ##' A list with components:
@@ -220,7 +221,7 @@
 solve_game <- function(
   fun, ..., equilibrium="NE", crit="sur", model=NULL, n.init=NULL, n.ite, d, nobj, x.to.obj=NULL, noise.var = NULL,
   Nadir=NULL, Shadow=NULL, integcontrol=NULL, simucontrol=NULL, filtercontrol=NULL, kmcontrol=NULL, returncontrol=NULL,
-  ncores=1, trace=1, seed=NULL, calibcontrol=NULL) {
+  ncores=1, trace=1, seed=NULL, calibcontrol=NULL, freq.exploit=1e3) {
   
   t1 <- Sys.time()
   set.seed(seed)
@@ -682,7 +683,7 @@ solve_game <- function(
       
       ## Special treatment to force exploration on last iteration
       FailToExploit <- TRUE
-      if (ii == n.ite && returncontrol$force.exploit.last) {
+      if (((ii == n.ite) && returncontrol$force.exploit.last) || ((ii %% freq.exploit == 0) && (ii > 1))) {
         if (equilibrium %in% c("KSE", "CKSE")) {
           predmean <- Reduce(cbind, lapply(pred, function(alist) alist$mean))
           if (!is.null(calibcontrol$target)) {
