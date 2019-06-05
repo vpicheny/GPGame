@@ -109,7 +109,7 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
   trueEqdesign <- integ.pts[trueEq[[2]],]
   # I.nd <- is_dominated(t(fun.grid))
   I.nd <- nonDom(fun.grid, return.idx=TRUE)
-  trueParetoFront <- fun.grid[!I.nd,]
+  trueParetoFront <- fun.grid[I.nd,]
 
   # Plot actual problem and solution
   cols <- rep("black", n.integ.pts)

@@ -136,9 +136,9 @@ crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equil
     Ynew2  <- matrix(NA, n.ynew, nobj)
 
     for (u in 1:nobj){
-      prednew <- predict_nobias_km(model[[u]], newdata=data.frame(x=xnew), "UK", checkNames=FALSE)
+      prednew <- predict_nobias_km(model[[u]], newdata=xnew, "UK", checkNames=FALSE)
 
-      kn <- computeQuickKrigcov(model=model[[u]], integration.points=as.data.frame(x=integ.pts), X.new=data.frame(x=xnew),
+      kn <- computeQuickKrigcov(model=model[[u]], integration.points=integ.pts, X.new=xnew,
                                 precalc.data=precalc.data[[u]], F.newdata=prednew$F.newdata, c.newdata=prednew$c)
       kn_plus <- predict(model[[u]], data.frame(x=xnew), "UK", checkNames=FALSE)$sd^2
       lambda[,u] <- kn/kn_plus
