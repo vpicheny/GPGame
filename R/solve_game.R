@@ -241,6 +241,7 @@ solve_game <- function(
   integ.pts <- integcontrol$integ.pts
   expanded.indices <- integcontrol$expanded.indices
   n.s <- integcontrol$n.s
+  init_set <- integcontrol$init_set
   gridtype <- switch(1+is.null(integcontrol$gridtype), integcontrol$gridtype, "lhs")
   lb <- switch(1+is.null(integcontrol$lb), integcontrol$lb, rep(0, d))
   ub <- switch(1+is.null(integcontrol$ub), integcontrol$ub, rep(1, d))
@@ -329,6 +330,7 @@ solve_game <- function(
   Eq.design.estimate <- Eq.poff.estimate <- trackPnash <- NULL
   predEq <- list()
   include.obs <- FALSE
+  all_simPoints <- c()
   
   #### Initial design and models ####################
   if (is.null(model)){
@@ -387,7 +389,7 @@ solve_game <- function(
   #### MAIN LOOP STARTS HERE #########################################################################
   ####################################################################################################
   Jnres <- rep(NA, n.ite + 1)
-  
+
   for (ii in 1:(n.ite+1)){
     if (ii < (n.ite+1) && trace>0){cat("--- Iteration #", ii, " ---\n")}else{
       if(trace>0){cat}("--- Post-processing ---\n")
@@ -399,11 +401,15 @@ solve_game <- function(
     # RENEW INTEGRATION POINTS
     ##################################################################
     if (ii > 1 && integcontrol$renew) {
+      all_simPoints <- unique(rbind(all_simPoints, as.matrix(my.integ.pts)))
+      print(str(all_simPoints))
       include.obs <- equilibrium %in% c("KSE", "CKSE")
       res <- generate_integ_pts(n.s=n.s, d=d, nobj=nobj, x.to.obj=x.to.obj, equilibrium=equilibrium,
-                                gridtype=gridtype, lb = lb, ub = ub, include.obs=include.obs, model=model, seed=ii)
+                                gridtype=gridtype, lb = lb, ub = ub, include.obs=include.obs, model=model, 
+                                init_set=init_set, include_set=all_simPoints, seed=ii)
       integcontrol$integ.pts <- integ.pts <- res$integ.pts
       integcontrol$expanded.indices <- expanded.indices <- res$expanded.indices
+      print(str(integcontrol$integ.pts))
     }
     ##################################################################
     # MODELS UPDATE
@@ -660,7 +666,8 @@ solve_game <- function(
                              equilibrium=equilibrium, nsamp=filtercontrol$nsamp, Nadir=Nadir, Shadow=Shadow, target=calibcontrol$target)$I
       }
     }
-    
+    print("J")
+    print(str(J))
     ## Remove already evaluated designs from candidates
     if((ii > 1) && (ii<(n.ite+1))){
       my.pred.s <- my.pred[[1]]$sd[J]

@@ -35,7 +35,7 @@
 ##' }
 
 generate_integ_pts <- function(n.s, d, nobj, x.to.obj=NULL, gridtype="cartesian", equilibrium="NE", lb=rep(0,d), ub=rep(1,d), 
-                               include.obs=FALSE, model=NULL, seed=42) {
+                               include.obs=FALSE, model=NULL, init_set=NULL, include_set=NULL, seed=42) {
 
   # Set x.to.obj to 1:nobj (one variable for each player) if missing
   # Necessary for NE or KSE with a cartesian grid
@@ -51,23 +51,36 @@ generate_integ_pts <- function(n.s, d, nobj, x.to.obj=NULL, gridtype="cartesian"
     cat("a list of models must be given if include.obs=TRUE \n")
     include.obs <- FALSE
   }
-  
+
   # Set n.s as vector unless LHS design for KSE is sought
-  if (!(equilibrium %in% c("KSE", "CKSE") && gridtype=="lhs")) {
+  if (!(equilibrium %in% c("KSE", "CKSE") && gridtype %in% c("lhs", "subset"))) {
     if (length(n.s)==1) n.s <- rep(round((n.s)^(1/nobj)), nobj)
   }
 
-  if (equilibrium %in% c("KSE", "CKSE") && length(gridtype)==1 && gridtype[1]=="lhs") {
-    # KSE & LHS: standard LHS is generated
+  if (equilibrium %in% c("KSE", "CKSE") && length(gridtype)==1 && gridtype[1] %in% c("lhs", "subset")) {
+    
     if (include.obs) n.lhs <- max(0, n.s - model[[1]]@n) else n.lhs <- n.s
-    test.grid <- lhsDesign(n=n.lhs, dimension=d, seed = seed)$design
-    
-    # Scaling
-    test.grid <- test.grid*matrix((ub - lb), nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE) +
-      matrix(lb, nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE)
-    
+    if (!is.null(include_set)) n.lhs <- max(0, n.lhs - nrow(include_set))
+        
+    if (gridtype[1] == "subset" && !is.null(init_set)) {
+      I <- sample.int(nrow(init_set), n.lhs, replace = FALSE)
+      test.grid <- init_set[I,,drop=FALSE] 
+    } else {
+      # KSE & LHS: standard LHS is generated
+      test.grid <- lhsDesign(n=n.lhs, dimension=d, seed = seed)$design
+      
+      # Scaling
+      test.grid <- test.grid*matrix((ub - lb), nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE) +
+        matrix(lb, nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE)
+    }
+
     if (include.obs) test.grid <- rbind(model[[1]]@X, test.grid)
-    expanded.indices <- matrix(rep(seq(1,n.s), d), ncol=d)
+    if (!is.null(include_set)) test.grid <- rbind(include_set, test.grid)
+    
+    test.grid <- unique(test.grid)
+    n.s <- nrow(test.grid)
+    
+    expanded.indices <- matrix(rep(seq(1, n.s), d), ncol=d)
   } else {
     # Otherwise: grid structure
     if (length(gridtype)==1) gridtype <- rep(gridtype, nobj)
@@ -96,5 +109,7 @@ generate_integ_pts <- function(n.s, d, nobj, x.to.obj=NULL, gridtype="cartesian"
       matrix(lb, nrow=nrow(test.grid), ncol=ncol(test.grid), byrow=TRUE)
   }
 
-  return(list(integ.pts=test.grid, expanded.indices=as.matrix(expanded.indices), n.s=n.s))
+  return(list(integ.pts=test.grid, expanded.indices=as.matrix(expanded.indices), n.s=n.s,
+              x.to.obj=NULL, gridtype=gridtype, equilibrium=equilibrium, lb=lb, ub=ub, 
+              include.obs=include.obs, model=model, init_set=init_set))
 }
