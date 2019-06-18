@@ -1,7 +1,7 @@
 solve_game_baseline <- function(
   fun, ..., equilibrium="NE", crit="sur", model=NULL, n.init=NULL, n.ite, d, nobj, x.to.obj=NULL, noise.var = NULL,
   Nadir=NULL, Shadow=NULL, integcontrol=NULL, simucontrol=NULL, filtercontrol=NULL, kmcontrol=NULL, returncontrol=NULL,
-  ncores=1, trace=1, seed=NULL, calibcontrol=NULL, freq.exploit=1e3) {
+  ncores=1, trace=1, seed=NULL, calibcontrol=NULL, freq.exploit=1e3, baseline_type="RS") {
   
   t1 <- Sys.time()
   set.seed(seed)
@@ -58,6 +58,11 @@ solve_game_baseline <- function(
   ####################################################################################################
   #### INITIALIZE VARIABLES AND MODELS ###############################################################
   ####################################################################################################
+  if (baseline_type == "RS") {
+    if (is.null(n.init))     n.init <- 0
+    n.init <- n.init + n.ite
+    n.ite <- 0
+  }
   
   #### Initial design and models ####################
   if (is.null(model)){
