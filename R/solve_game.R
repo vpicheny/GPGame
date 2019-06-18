@@ -83,6 +83,7 @@
 ## ' @importFrom graphics filled.contour
 ##' @import DiceKriging DiceDesign parallel
 ##' @importFrom MASS mvrnorm
+##' @importFrom utils str
 ## ' @importFrom grDevices terrain.colors
 ## ' @importFrom graphics legend
 ##' @useDynLib GPGame, .registration = TRUE
