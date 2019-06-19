@@ -7,8 +7,8 @@ library(DiceOptim)
 
 set.seed(42)
 
-testfun <- "DTLZ2"  # "hartman" "DTLZ2"
-config <- "baseline" # "S", "M", "L", "XL", "baseline"
+testfun <- "hartman"  # "hartman" "DTLZ2"
+config <- "RS" # "S", "M", "L", "XL", "baseline", "RS"
 pb_type <- "discrete" # "discrete", "continuous"
 equilibrium <- "KS" #"KS", "CKS"
 compute_actual <- FALSE
@@ -72,7 +72,7 @@ dir.create(file.path(directory), showWarnings = FALSE)
 
 exp_name <- paste0(directory, "config_", config_number, "_")
 
-ncores <- 5  #detectCores()
+ncores <- 1  #detectCores()
 
 formals(fun)$nobj <- nobj
 
@@ -122,13 +122,19 @@ if (equilibrium == "KS") {
   # Run solver
   KS_mat <- NULL
   # for(ii in 5){
-  for(ii in 1:ntests){
+  for(ii in 3:ntests){
     if (config == "baseline") {
       res <- solve_game_baseline(fun, equilibrium = "KSE", crit = "sur", n.init=n.init, n.ite=n.ite,
                         d = dim, nobj=nobj, x.to.obj = NULL,
                         integcontrol=integcontrol, simucontrol = simucontrol,
                         filtercontrol=filtercontrol, kmcontrol=kmcontrol,
                         ncores = ncores, trace=2, seed=ii, freq.exploit=5)
+    } else if (config == "RS") {
+      res <- solve_game_baseline(fun, equilibrium = "KSE", crit = "sur", n.init=n.init, n.ite=n.ite,
+                                 d = dim, nobj=nobj, x.to.obj = NULL,
+                                 integcontrol=integcontrol, simucontrol = simucontrol,
+                                 filtercontrol=filtercontrol, kmcontrol=kmcontrol,
+                                 ncores = ncores, trace=2, seed=ii, baseline_type="RS")
     } else {
       res <- solve_game(fun, equilibrium = "KSE", crit = "sur", n.init=n.init, n.ite=n.ite,
                         d = dim, nobj=nobj, x.to.obj = NULL,

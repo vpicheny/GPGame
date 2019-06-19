@@ -6,32 +6,31 @@ library(gridExtra)
 require(ggplot2)
 require(reshape2)
 
-setwd("~/Code/GPGame")
-source('~/Code/GPGame/example/plot_utils.R')
+# setwd("~/Code/GPGame")
+source('example/plot_utils.R')
 
-testfun <- "DTLZ2" # "hartman" "DTLZ2"
+testfun <- "hartman" # "hartman" "DTLZ2"
 # config <- "L" # "S", "M", "L", "XL"
 # pb_type <- "continuous" # "discrete", "continuous"
 equilibrium <- "KS" #"KS", "CKS"
 
 
-
 config_number1 <-  paste0("S", "_", "discrete")
 config_number2 <-  paste0("L", "_", "discrete")
-config_number3 <-  paste0("baseline", "_", "discrete")
+# config_number3 <-  paste0("baseline", "_", "discrete")
 config_number4 <-  paste0("S", "_", "continuous")
 config_number5 <-  paste0("L", "_", "continuous")
+config_number <- c(config_number1, config_number2, config_number4, config_number5)
+# config_number <- c(config_number1, config_number2, config_number3, config_number4, config_number5)
 
-config_number <- c(config_number1, config_number2, config_number3, config_number4, config_number5)
-
-if (testfun == "DTLZ2") { directory <- "~/Code/GPGame/example/Test_results/dtlz2/" 
-} else {                  directory <- "~/Code/GPGame/example/Test_results/hartman/"}
+if (testfun == "DTLZ2") { directory <- "example/Test_results/dtlz2/" 
+} else {                  directory <- "example/Test_results/hartman/"}
 
 average_perf <- all_perf <- min_perf <- max_perf <- c()
 for (i in 1:length(config_number)) {
   exp_name <- paste0(directory, "config_", config_number[i], "_")
   
-  if (i != 3) load(paste0(exp_name, "config_and_solution.RData"))
+  if (i != 30) load(paste0(exp_name, "config_and_solution.RData"))
   
   ntests = 3
   list_of_model <- vector("list", ntests) 
