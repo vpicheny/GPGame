@@ -167,7 +167,7 @@ solve_game_baseline <- function(
         
         if (typeof(currentEq)== "character") {
           cat("Unable to compute exploitation step, last model returned \n")
-          return(list(model=model, predEq=predEq, integcontrol=integcontrol))
+          return(list(model=model, integcontrol=integcontrol))
         }
         
         i <- currentEq$NE
@@ -183,7 +183,7 @@ solve_game_baseline <- function(
         cat("Unable to compute objective function at iteration ", i, "- optimization stopped \n")
         cat("Problem occured for the design: ", xnew, "\n")
         cat("Last model and problematic design (xnew) returned \n")
-        return(list(model=model, predEq=predEq, integcontrol=integcontrol, xnew=xnew))
+        return(list(model=model, integcontrol=integcontrol, xnew=xnew))
       }
       
       if (!is.null(noise.var)) {
