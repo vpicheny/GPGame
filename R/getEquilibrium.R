@@ -295,11 +295,11 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
     } else {
 
       if (!is.null(kweights)){
-        Zrand <- matrix(NA, nrow = nrow(kweights[[1]]$kn), ncol = length(J))
+        Zrand <- matrix(NA, nrow = nrow(kweights[[1]]), ncol = length(J))
         for(jj in 1:length(J)) {
           if (!is.null(calibcontrol$target)) {
             # Calibration mode
-            Zrand[,jj] <- kweights[[jj]]$kn %*% (kweights[[jj]]$Knn %*% calibcontrol$Y[,J[jj]])
+            Zrand[,jj] <- kweights[[jj]] %*% calibcontrol$Y[,J[jj]]
             # print(str(Zrand[,jj]))
             # print(calibcontrol$target)
             Zrand[,jj] <- (Zrand[,jj] - calibcontrol$target[jj])^2
@@ -308,7 +308,7 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
             }
           } else {
             # Regular mode
-            Zrand[,jj] <- kweights[[jj]]$kn %*% (kweights[[jj]]$Knn %*% Z[,J[jj]])
+              Zrand[,jj] <- kweights[[jj]] %*% Z[,J[jj]]
           }
         }
 

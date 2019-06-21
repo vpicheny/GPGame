@@ -562,7 +562,7 @@ solve_game <- function(
           cat("Unable to compute kweights, last model returned \n")
           return(list(model=model, predEq=predEq, integcontrol=integcontrol))
         }
-        kweights <- c(kweights, list(list(kn = kn, Knn = Knn)))
+        kweights <- c(kweights, list(kn %*% Knn))
       }
     } else {kweights = NULL}
     
