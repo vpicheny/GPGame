@@ -350,7 +350,7 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
         i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2))
       } else {
         if (copula) {
-          Ured <- apply(Z, 2, faster_rank)
+          Ured <- apply(Z[,J, drop = FALSE], 2, faster_rank)
           Ured <- Ured[I,, drop=FALSE]
           # i <- which.min(apply(Ured, 1, var))
           i <- which.max(apply(Ured, 1, min))
