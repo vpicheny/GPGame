@@ -133,33 +133,33 @@ getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj
 ## ' @export
 
 getNashEquilibrium <- function(Z, nobj=2, n.s, expanded.indices=NULL, return.design=FALSE, sorted=FALSE, cross=FALSE,...){
-
+  
   if(cross){
     nsim <- ncol(Z)/nobj
-
+    
     if(!sorted)
       print("Non sorted case not implemented with cross")
-
+    
     combisim <- NULL
     for(i in 1:nobj)
       combisim <- c(combisim, list(0:(nsim - 1))) ## starts at 0 for Rcpp indices compatibility
     combisim <- as.matrix(expand.grid(combisim))
     NE <- PSNE_sparseMat_cross(n.s, Z, expanded.indices - as.integer(1), combisim = combisim, ncross = nsim^(nobj-1))
-
+    
     if (return.design == FALSE) return(getPoffsCross(isNash = NE, Poffs = Z, combisim = combisim, nsim = nsim))
     else                     return(list(NEPoff = getPoffsCross(isNash = NE, Poffs = Z, combisim = combisim, nsim = nsim), NE = unlist(apply(NE, 2, which))))
-
+    
   }
-
-
+  
+  
   if (sorted) {
     NE <- PSNE_sparseMat_sorted(n.s, Z, expanded.indices - as.integer(1)) ## -1 for compatibility with Rcpp
   } else {
     NE <- PSNE_sparseMat(n.s, Z, expanded.indices - as.integer(1)) ## -1 for compatibility with Rcpp
   }
-
+  
   NEPoff <- matrix(NA, 1, nobj)
-
+  
   if (!is.null(NE) && length(which(NE)) > 0) {
     if (!return.design) return(getPoffs(NE, Z, nsim = ncol(Z)/nobj, nobj))
     else return(list(NEPoff = getPoffs(NE, Z, nsim = ncol(Z)/nobj, nobj), NE = unlist(apply(NE, 2, which))))
@@ -185,15 +185,15 @@ getNashEquilibrium <- function(Z, nobj=2, n.s, expanded.indices=NULL, return.des
 ## '
 ## ' @export
 getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indices=NULL, cross=FALSE, ...){
-
+  
   # allShadow <- getNashEquilibrium(Z=Z, nobj=nobj, n.s=n.s, expanded.indices=expanded.indices, cross=cross)
   # if (any(is.na(allShadow))) {
   #   NEPoff <- rep(NA, nobj)
   #   NE <- NA
   # } else {
-
+  
   nsim <- ncol(Z) / nobj
-
+  
   if (cross) {
     indices <- list()
     for (u in 1:nobj) indices[[u]] <- (1:nsim)+(u-1)*nsim
@@ -204,24 +204,24 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
       Jmat[u,] <- seq(u, ncol(Z), nsim)
     }
   }
-
+  
   # NEPoff <- matrix(NA, nrow(Jmat), nobj)
   # NE     <- rep(NA, nrow(Jmat))
   NE <- NEPoff <- NULL
-
+  
   for (u in 1:nrow(Jmat)) {
-
+    
     # Only look at first NE if there are several
     Nadir <- getNashEquilibrium(Z=Z, nobj=nobj, n.s=n.s, expanded.indices=expanded.indices, cross=cross)[1,]
-
+    
     J <- Jmat[u,]
     # I <- which(!is_dominated(t(Z[,J])))
     I <- nonDom(Z[,J, drop = FALSE], return.idx = TRUE) 
     Zred <- Z[I, J, drop=FALSE]
     Shadow <- apply(Zred, 2, min)
-
+    
     # Shadow <- allShadow[u,]
-
+    
     if (nrow(Zred)==1) {
       i <- 1
     } else {
@@ -233,12 +233,12 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
     NEPoff <- rbind(NEPoff, Zred[i,])
     NE     <- c(NE, I[i])
   }
-
+  
   if(is.null(NEPoff)){
     NEPoff <- matrix(NA, nrow(Jmat), nobj)
     NE     <- rep(NA, nrow(Jmat))
   }
-
+  
   # }
   if (return.design==FALSE) return(NEPoff)
   else                     return(list(NEPoff=NEPoff, NE=I[i]))
@@ -264,9 +264,9 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' @noRd
 ##' @importFrom stats var
 getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
-
+  
   nsim <- ncol(Z) / nobj
-
+  
   if (cross) {
     indices <- list()
     for (u in 1:nobj) indices[[u]] <- (1:nsim)+(u-1)*nsim
@@ -277,58 +277,61 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
       Jmat[u,] <- seq(u, ncol(Z), nsim)
     }
   }
-
+  
   NEPoff <- matrix(NA, nrow(Jmat), nobj)
   NE     <- rep(NA, nrow(Jmat))
-
+  
+  if(!is.null(kweights)){
+    Zrand <- matrix(NA, nrow = nrow(kweights[[1]]), ncol = ncol(Z))
+    for(jj in 1:ncol(Jmat)) {
+      if (!is.null(calibcontrol$target)) {
+        # Calibration mode
+        Zrand[, Jmat[,jj]] <- kweights[[jj]] %*% calibcontrol$Y[,Jmat[,jj]]
+        # print(str(Zrand[,jj]))
+        # print(calibcontrol$target)
+        Zrand[, Jmat[,jj]] <- (Zrand[, Jmat[,jj]] - calibcontrol$target[jj])^2
+        if (calibcontrol$log) {
+          Zrand[,jj] <- log(Zrand[,jj] + calibcontrol$offset)
+        }
+      } else {
+        # Regular mode
+        Zrand[,Jmat[,jj]] <- kweights[[jj]] %*% Z[,Jmat[,jj]]
+      }
+    }
+  }
+  
   for (u in 1:nrow(Jmat)) {
     J <- Jmat[u,]
     # I <- which(!is_dominated(t(Z[,J, drop = FALSE])))
-
+    
     # if(is.null(kweights)) I <- nonDomInd(Z[,J, drop = FALSE]) else I <- 1:nrow(Z)
     if(is.null(kweights)) I <- nonDom(Z[,J, drop = FALSE], return.idx = TRUE) else I <- 1:nrow(Z)
     
     Zred <- Z[I,J, drop=FALSE] #
-
+    
     if (nrow(Zred)==1) {
       i <- 1
     } else {
-
+      
       if (!is.null(kweights)){
-        Zrand <- matrix(NA, nrow = nrow(kweights[[1]]$kn), ncol = length(J))
-        for(jj in 1:length(J)) {
-          if (!is.null(calibcontrol$target)) {
-            # Calibration mode
-            Zrand[,jj] <- kweights[[jj]]$kn %*% (kweights[[jj]]$Knn %*% calibcontrol$Y[,J[jj]])
-            # print(str(Zrand[,jj]))
-            # print(calibcontrol$target)
-            Zrand[,jj] <- (Zrand[,jj] - calibcontrol$target[jj])^2
-          if (calibcontrol$log) {
-            Zrand[,jj] <- log(Zrand[,jj] + calibcontrol$offset)
-            }
-          } else {
-            # Regular mode
-            Zrand[,jj] <- kweights[[jj]]$kn %*% (kweights[[jj]]$Knn %*% Z[,J[jj]])
-          }
-        }
-
         # Irand <- which(!is_dominated(t(Zrand)))
-        Irand <- nonDom(Zrand, return.idx = TRUE)
-
+        Irand <- nonDom(Zrand[,J,drop = FALSE], return.idx = TRUE)
+        Zrandred <- Zrand[, J, drop = FALSE]
+        
         if(copula){
-          Urand <- apply(Zrand, 2, faster_rank)
+          Urand <- apply(Zrandred, 2, faster_rank)
           Urand <- Urand[Irand,, drop=FALSE]
-          Zrand <- Zrand[Irand,, drop = FALSE]
-
+          Zrandred <- Zrandred[Irand,, drop = FALSE]
+          
           # best index on randomly sampled points
-          Ztarget <- Zrand[which.max(apply(Urand, 1, min)),]
+          Ztarget <- Zrandred[which.max(apply(Urand, 1, min)),]
           # Ztarget <- Zrand[which.min(apply(Urand, 1, var)),]
           # i <- which.min(apply(apply(Zred, 2, rank), 1, var))
         } else {
-          Zrand <- Zrand[Irand,, drop = FALSE]
+          Zrandred <- Zrand[Irand,, drop = FALSE]
           
-          Shadow_emp <- apply(Zrand, 2, min)
-          Nadir_emp  <- apply(Zrand, 2, max)
+          Shadow_emp <- apply(Zrandred, 2, min)
+          Nadir_emp  <- apply(Zrandred, 2, max)
           
           if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
           if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
@@ -342,15 +345,15 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
           
           # ratios <- (Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T) ) /  (matrix(rep(Shadow - Nadir, nrow(Zrand)), ncol=nobj, byrow=T))
           
-          ratios <- sweep(sweep(Zrand, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
-          Ztarget <- Zrand[which.max(apply(ratios, 1, min)),]
+          ratios <- sweep(sweep(Zrandred, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
+          Ztarget <- Zrandred[which.max(apply(ratios, 1, min)),]
           # Ztarget <- Zrand[which.min(alldist2),]
         }
         # now find the closest point on Zred of Zrand[i]
         i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2))
       } else {
         if (copula) {
-          Ured <- apply(Z, 2, faster_rank)
+          Ured <- apply(Z[,J, drop = FALSE], 2, faster_rank)
           Ured <- Ured[I,, drop=FALSE]
           # i <- which.min(apply(Ured, 1, var))
           i <- which.max(apply(Ured, 1, min))

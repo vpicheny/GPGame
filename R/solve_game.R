@@ -73,7 +73,7 @@
 ##' \item{\code{Eq.design, Eq.poff}}{: estimated equilibrium and corresponding pay-off}
 ##' }
 ##'
-##' Note: with CKSE, kweights are not used when the mean on integ.pts is used
+##' Note: with CKSE, kweights are not used when the mean on integ.pts is used. Also, CKSE does not support non-constant mean at this stage.
 ##'
 ##' @export
 ## ' @importFrom grDevices dev.off pdf rainbow
