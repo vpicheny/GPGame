@@ -327,7 +327,7 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
           
           # best index on randomly sampled points
           # Ztarget <- Zrandred[which.max(apply(Urand, 1, min)),]
-          Ztarget <- Zrandred[which.max(colMins(Urand)),]
+          Ztarget <- Zrandred[which.max(rowMins(Urand)),]
           # Ztarget <- Zrand[which.min(apply(Urand, 1, var)),]
           # i <- which.min(apply(apply(Zred, 2, rank), 1, var))
         } else {
