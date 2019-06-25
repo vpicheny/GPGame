@@ -412,16 +412,23 @@ plot_bundle <- function(observations, Nadir, Shadow, n.init, Eq.poff, Eq.design,
 
 #------------------------------------------------
 # Convergence plots
-convergence_plots <- function(models, solution) {
+convergence_plots <- function(models, solution, Nadir=NULL, Shadow=NULL, title=NULL) {
   n_runs <- length(models)
   n_ite <- models[[1]][[1]]@n
   
   results <- results2 <- matrix(NA, n_runs, n_ite)
   
+  if (!is.null(Nadir)) ratio_sol <- min((solution - Nadir) / (Shadow - Nadir))
+  
   for(i in 1:n_runs){
     model <- models[[i]]
     observations <- Reduce(cbind, lapply(model, slot, "y"))
-    results[i,] <- as.matrix(dist(rbind(solution, observations)))[2:(model[[1]]@n+1),1]
+    if (is.null(Nadir)) {
+      results[i,] <- as.matrix(dist(rbind(solution, observations)))[2:(model[[1]]@n+1),1]
+    } else {
+      ratios <- sweep(sweep(observations, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
+      results[i,] <- ratio_sol - apply(ratios, 1, min)
+    }
     results2[i,] <- cummin(results[i,])
   }
   require(ggplot2)
@@ -436,7 +443,7 @@ convergence_plots <- function(models, solution) {
   df2 <- melt(df2,  id.vars = 'time', variable.name = 'run')
   
   # p1 <- ggplot(df, aes(time, value)) + geom_line(aes(colour = run))
-  p2 <- ggplot(df2, aes(time, value)) + geom_line(aes(colour = run))
+  p2 <- ggplot(df2, aes(time, value)) + geom_line(aes(colour = run)) + ylim(0, NA) + ggtitle(title)
   grid.arrange(p2, nrow = 1)
 
   return(list(cummin=results2, alldist=results))

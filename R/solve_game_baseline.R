@@ -1,7 +1,7 @@
 solve_game_baseline <- function(
   fun, ..., equilibrium="NE", crit="sur", model=NULL, n.init=NULL, n.ite, d, nobj, x.to.obj=NULL, noise.var = NULL,
   Nadir=NULL, Shadow=NULL, integcontrol=NULL, simucontrol=NULL, filtercontrol=NULL, kmcontrol=NULL, returncontrol=NULL,
-  ncores=1, trace=1, seed=NULL, calibcontrol=NULL, freq.exploit=1e3, baseline_type="RS") {
+  ncores=1, trace=1, seed=NULL, calibcontrol=NULL, freq.exploit=1e3, baseline_type="1d") {
   
   t1 <- Sys.time()
   set.seed(seed)

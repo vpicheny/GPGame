@@ -9,30 +9,41 @@ require(reshape2)
 # setwd("~/Code/GPGame")
 source('example/plot_utils.R')
 
-testfun <- "hartman" # "hartman" "DTLZ2"
+testfun <- "DTLZ2" # "hartman" "DTLZ2"
 # config <- "L" # "S", "M", "L", "XL"
-# pb_type <- "continuous" # "discrete", "continuous"
+pb_type <- "continuous" # "discrete", "continuous"
 equilibrium <- "KS" #"KS", "CKS"
-
+ratios <- TRUE
 
 config_number1 <-  paste0("S", "_", "discrete")
 config_number2 <-  paste0("L", "_", "discrete")
-# config_number3 <-  paste0("baseline", "_", "discrete")
-config_number4 <-  paste0("S", "_", "continuous")
-config_number5 <-  paste0("L", "_", "continuous")
-config_number <- c(config_number1, config_number2, config_number4, config_number5)
-# config_number <- c(config_number1, config_number2, config_number3, config_number4, config_number5)
+config_number3 <-  paste0("baseline", "_", "discrete")
+config_number4 <-  paste0("RS", "_", "discrete")
+config_number5 <-  paste0("S", "_", "continuous")
+config_number6 <-  paste0("L", "_", "continuous")
+config_number7 <-  paste0("baseline", "_", "continuous")
+config_number8 <-  paste0("RS", "_", "discrete")
+
+# config_number <- c(config_number1, config_number2, config_number4, config_number5)
+# config_number <- c(config_number1, config_number2, config_number3, config_number4, 
+#                    config_number5, config_number6, config_number7)
+if (pb_type == "continuous") {
+  config_number <- c(config_number5, config_number6, config_number7, config_number8)
+} else {
+  config_number <- c(config_number1, config_number2, config_number3, config_number4)
+}
 
 if (testfun == "DTLZ2") { directory <- "example/Test_results/dtlz2/" 
 } else {                  directory <- "example/Test_results/hartman/"}
 
-average_perf <- all_perf <- min_perf <- max_perf <- c()
+average_perf <- all_perf <- median_perf <- min_perf <- max_perf <- c()
+
 for (i in 1:length(config_number)) {
   exp_name <- paste0(directory, "config_", config_number[i], "_")
   
-  if (i != 30) load(paste0(exp_name, "config_and_solution.RData"))
+  if (i %in% c(1, 5)) load(paste0(exp_name, "config_and_solution.RData"))
   
-  ntests = 3
+  ntests = 10
   list_of_model <- vector("list", ntests) 
   
   for (ii in 1:ntests) {
@@ -42,17 +53,31 @@ for (i in 1:length(config_number)) {
   solution <- KS_act
   print(KS_act)
   
-  perf <- convergence_plots(list_of_model, solution)
+  if (i == 8) exp_name <- paste0("RS", "_", "continuous")
+  
+  if (ratios) {
+    perf <- convergence_plots(list_of_model, solution, Nadir, Shadow, title=config_number[i])
+  } else {
+    perf <- convergence_plots(list_of_model, solution, title=config_number[i])
+  }
+ 
   average_perf <- rbind(average_perf, apply(perf$cummin, 2, mean))
+  median_perf <- rbind(median_perf, apply(perf$cummin, 2, median))
   min_perf <- rbind(min_perf, apply(perf$cummin, 2, min))
   max_perf <- rbind(max_perf, apply(perf$cummin, 2, max))
   all_perf <- rbind(all_perf, perf$cummin)
 }
 
-t_max <- ncol(average_perf)
+ymin <- 1e-3
+myperf <- average_perf
+myperf <- pmax(myperf, ymin)
+min_perf <- pmax(min_perf, ymin)
+t_max <- ncol(myperf)
 # t_max <- 42
 
-df <- data.frame(t(average_perf[,1:t_max, drop=FALSE]))
+# config_number[8] <- paste0("RS", "_", "continuous")
+config_number <- c("S", "L", "base", "RS")
+df <- data.frame(t(myperf[,1:t_max, drop=FALSE]))
 df$time = 1:t_max
 names(df) <- c(config_number, "time")
 df <- melt(df ,  id.vars = 'time', variable.name = 'config')
@@ -69,11 +94,16 @@ dfM <- melt(dfM,  id.vars = 'time', variable.name = 'up')
 
 ddf = cbind(df, dfm, dfM)[-c(4,7)]
 
-p <- ggplot(df, aes(time, value, fill=config)) + geom_line(aes(colour = config)) + ylim(0, max(average_perf))
+p <- ggplot(df, aes(time, value, fill=config)) + geom_line(aes(colour = config)) + ylim(0, NA)
 p <- p + geom_vline(xintercept=n.init+1/2, linetype="dashed", color = "black")
 grid.arrange(p, nrow = 1)
 
-pp <- ggplot(ddf, aes(time, value, ymin=value.1, ymax=value.2, fill=config)) + geom_line(aes(colour = config)) + ylim(0, max(average_perf))
+# dddf = ddf[-which(ddf$config %in% c("RS_discrete", "RS_continuous")),]
+pp <- ggplot(ddf, aes(time, value, ymin=value.1, ymax=value.2, fill=config))
 pp <- pp + geom_vline(xintercept=n.init+1/2, linetype="dashed", color = "black")
-pp <- pp + geom_ribbon(alpha=0.5)
+pp <- pp + geom_ribbon(alpha=0.2)
+pp <- pp + geom_line(aes(colour = config), size=1) #+ ylim(0.001, NA)
+pp <- pp + scale_y_continuous(trans='log10', limits=c(ymin, .5)) #+ ylim(0.001, NA)
+# pp <- pp + coord_trans(y='log10')
+pp <- pp #+ ylim(0.001, NA)
 grid.arrange(pp, nrow = 1)

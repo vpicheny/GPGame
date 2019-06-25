@@ -551,21 +551,7 @@ solve_game <- function(
     } else {
       my.n.s <- apply(my.expanded.indices, 2, function(x) length(unique(x)))
     }
-    
-    if (equilibrium == "CKSE" && integcontrol$kweights){
-      Xsamp <- matrix(runif(d * integcontrol$nsamp), integcontrol$nsamp)
-      kweights <- list()
-      for(u in 1:nobj){
-        kn <- covMat1Mat2(model[[u]]@covariance, Xsamp, my.integ.pts)
-        Knn <- try(chol2inv(chol(covMat1Mat2(model[[u]]@covariance, my.integ.pts, my.integ.pts) + diag(1e-6, nrow(my.integ.pts)))))
-        if (typeof(Knn)== "character") {
-          cat("Unable to compute kweights, last model returned \n")
-          return(list(model=model, predEq=predEq, integcontrol=integcontrol))
-        }
-        kweights <- c(kweights, list(list(kn = kn, Knn = Knn)))
-      }
-    } else {kweights = NULL}
-    
+
     if (trace>1) cat("Number of strategies after simu filtering: (", my.n.s, ")\n")
     
     my.expanded.indices2 <- my.expanded.indices
@@ -582,6 +568,23 @@ solve_game <- function(
     t2 <- Sys.time() - t1
     if (trace>2) cat("Time for filter 1 (simu): ", t2, units(t2), "\n")
     t1 <- Sys.time()
+    
+    if (equilibrium == "CKSE" && integcontrol$kweights){
+      Xsamp <- matrix(runif(d * integcontrol$nsamp), integcontrol$nsamp)
+      kweights <- list()
+      for(u in 1:nobj){
+        kn <- covMat1Mat2(model[[u]]@covariance, Xsamp, my.integ.pts)
+        Knn <- try(chol2inv(chol(covMat1Mat2(model[[u]]@covariance, my.integ.pts, my.integ.pts) + diag(1e-6, nrow(my.integ.pts)))))
+        if (typeof(Knn)== "character") {
+          cat("Unable to compute kweights, last model returned \n")
+          return(list(model=model, predEq=predEq, integcontrol=integcontrol))
+        }
+        kweights <- c(kweights, list(list(kn = kn, Knn = Knn)))
+      }
+      t2 <- Sys.time() - t1
+      if (trace>2) cat("Time for kweights: ", t2, units(t2), "\n")
+      t1 <- Sys.time()
+    } else {kweights = NULL}
     
     ##################################################################
     # Precalculations and simulations (if not performed already)
