@@ -320,8 +320,7 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
         Zrandred <- Zrand[, J, drop = FALSE]
         
         if(copula){
-          Irand <- 1:length(J)
-          Urand <- apply(Zrandred, 2, faster_rank)
+          Urand <- apply(-Zrandred, 2, faster_rank)
           # Urand <- Urand[Irand,, drop=FALSE]
           # Zrandred <- Zrandred[Irand,, drop = FALSE]
           
@@ -358,9 +357,10 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
       } else {
         if (copula) {
           Ured <- apply(Z[,J, drop = FALSE], 2, faster_rank)
-          Ured <- Ured[I,, drop=FALSE]
+          Ured <- -Ured[I,, drop=FALSE]
           # i <- which.min(apply(Ured, 1, var))
-          i <- which.max(apply(Ured, 1, min))
+          # i <- which.max(apply(Ured, 1, min))
+          i <- which.max(rowMins(Ured))
         } else {
           Shadow_emp <- apply(Zred, 2, min)
           Nadir_emp  <- apply(Zred, 2, max)
