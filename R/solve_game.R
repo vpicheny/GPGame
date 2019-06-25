@@ -579,7 +579,7 @@ solve_game <- function(
           cat("Unable to compute kweights, last model returned \n")
           return(list(model=model, predEq=predEq, integcontrol=integcontrol))
         }
-        kweights <- c(kweights, list(list(kn = kn, Knn = Knn)))
+        kweights <- c(kweights, list(kn %*% Knn))
       }
       t2 <- Sys.time() - t1
       if (trace>2) cat("Time for kweights: ", t2, units(t2), "\n")
