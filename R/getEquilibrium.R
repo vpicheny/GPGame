@@ -315,19 +315,23 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula
       
       if (!is.null(kweights)){
         # Irand <- which(!is_dominated(t(Zrand)))
-        Irand <- nonDom(Zrand[,J,drop = FALSE], return.idx = TRUE)
+        # Irand <- nonDom(Zrand[,J,drop = FALSE], return.idx = TRUE)
+        # Irand <- 1:length(J)
         Zrandred <- Zrand[, J, drop = FALSE]
         
         if(copula){
+          Irand <- 1:length(J)
           Urand <- apply(Zrandred, 2, faster_rank)
-          Urand <- Urand[Irand,, drop=FALSE]
-          Zrandred <- Zrandred[Irand,, drop = FALSE]
+          # Urand <- Urand[Irand,, drop=FALSE]
+          # Zrandred <- Zrandred[Irand,, drop = FALSE]
           
           # best index on randomly sampled points
-          Ztarget <- Zrandred[which.max(apply(Urand, 1, min)),]
+          # Ztarget <- Zrandred[which.max(apply(Urand, 1, min)),]
+          Ztarget <- Zrandred[which.max(colMins(Urand)),]
           # Ztarget <- Zrand[which.min(apply(Urand, 1, var)),]
           # i <- which.min(apply(apply(Zred, 2, rank), 1, var))
         } else {
+          Irand <- nonDom(Zrand[,J,drop = FALSE], return.idx = TRUE)
           Zrandred <- Zrand[Irand,, drop = FALSE]
           
           Shadow_emp <- apply(Zrandred, 2, min)
