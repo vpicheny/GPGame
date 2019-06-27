@@ -102,12 +102,10 @@ getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj
   if (equilibrium=="NE"){
     return(getNashEquilibrium(Z = Z, nobj = nobj, n.s = n.s, expanded.indices = expanded.indices, return.design = return.design, sorted = sorted, cross = cross))
   } else if (equilibrium=="KSE") {
-    return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross, Nadir=Nadir, Shadow=Shadow,
-                            calibcontrol = calibcontrol))
-    # return(getKSequilibrium(Z = rbind(Z, NSobs), nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross))
+    return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, Nadir=Nadir, Shadow=Shadow))
   } else if (equilibrium=="CKSE"){
-    return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross,
-                            copula=TRUE, kweights = kweights, calibcontrol=calibcontrol))
+    return(getCKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross,
+                             kweights = kweights, calibcontrol=calibcontrol))
   } else if (equilibrium=="NKSE") {
     return(getNKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, expanded.indices = expanded.indices, return.design = return.design, sorted = sorted, cross = cross))
   } else {
@@ -248,10 +246,67 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
 ##' @param nobj nb of objectives (or players)
 ##' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
-##' @param copula Boolean: if TRUE, the KS equilibrium is computed in the copula space and the maximum of all objectives is used instead of the Nadir
-##' @param kweights kriging weights for \code{CKS} (TESTING)
 ##' @param Nadir,Shadow optional vectors of size \code{nobj} to fix the Nadir and/or Shadow to a preset value. If only a subset of values needs to be defined, 
 ##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
+##' @param ... not used, for compatibility
+##' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
+##' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
+##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
+##' @noRd
+##' @importFrom stats var
+##' @importFrom matrixStats rowMins
+getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shadow=NULL, ...){
+  
+  nsim <- ncol(Z) / nobj
+  
+  Jmat <- matrix(NA, nsim, nobj)
+  for (u in 1:nsim) {
+    Jmat[u,] <- seq(u, ncol(Z), nsim)
+  }
+  
+  NEPoff <- matrix(NA, nrow(Jmat), nobj)
+  NE     <- rep(NA, nrow(Jmat))
+  
+  for (u in 1:nrow(Jmat)) {
+    J <- Jmat[u,]
+    
+    # non-dominated points are useful mostly for Shadow computation
+    if(is.null(Nadir)){
+      I <- nonDom(Z[,J, drop = FALSE], return.idx = TRUE)
+    }else{
+      I <- 1:nrow(Z)
+    }
+    
+    Zred <- Z[I, J, drop=FALSE]
+    
+    if (nrow(Zred)==1){
+      i <- 1
+    } else {
+      Shadow_emp <- apply(Zred, 2, min)
+      Nadir_emp  <- apply(Zred, 2, max)
+      
+      if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
+      if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
+      
+      i <- getKS(Zred, Nadir = Nadir, Shadow = Shadow)$id
+    }
+    
+    NEPoff[u,] <- Zred[i,,drop = FALSE]
+    NE[u]     <- I[i]
+  }
+  
+  if (return.design==FALSE) return(NEPoff)
+  else                     return(list(NEPoff=NEPoff, NE=NE))
+}
+
+#----------------------------------------------------------------
+##' Computes the equilibrium of finite Kalai-Smorodinski games given in the copula space, given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
+##' @title Copula Kalai-Smorodinski equilibrium computation
+##' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
+##' @param nobj nb of objectives (or players)
+##' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
+##' @param kweights kriging weights for \code{CKS} (TESTING)
+##' @param Nadir,Shadow optional vectors of size \code{nobj} to fix the Nadir and/or Shadow to a preset value. By default, in the copula space the nadir point is 1 and the shadow point is 0.
 ##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
 ##' \code{log} a Boolean stating if a log transformation should be used or not and 
 ##' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
@@ -262,7 +317,10 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' @noRd
 ##' @importFrom stats var
 ##' @importFrom matrixStats rowMins
-getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, copula=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
+getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
+  
+  if(is.null(Nadir)) Nadir <- rep(1, nobj)
+  if(is.null(Shadow)) Shadow <- rep(0, nobj)
   
   nsim <- ncol(Z) / nobj
   
@@ -270,7 +328,6 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, copula=FALSE, kweig
   for (u in 1:nsim) {
     Jmat[u,] <- seq(u, ncol(Z), nsim)
   }
-  
   
   NEPoff <- matrix(NA, nrow(Jmat), nobj)
   NE     <- rep(NA, nrow(Jmat))
@@ -281,8 +338,6 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, copula=FALSE, kweig
       if (!is.null(calibcontrol$target)) {
         # Calibration mode
         Zrand[, Jmat[,jj]] <- kweights[[jj]] %*% calibcontrol$Y[,Jmat[,jj]]
-        # print(str(Zrand[,jj]))
-        # print(calibcontrol$target)
         Zrand[, Jmat[,jj]] <- (Zrand[, Jmat[,jj]] - calibcontrol$target[jj])^2
         if (calibcontrol$log) {
           Zrand[,jj] <- log(Zrand[,jj] + calibcontrol$offset)
@@ -296,85 +351,17 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, copula=FALSE, kweig
   
   for (u in 1:nrow(Jmat)) {
     J <- Jmat[u,]
-    # I <- which(!is_dominated(t(Z[,J, drop = FALSE])))
-    
-    # if(is.null(kweights)) I <- nonDomInd(Z[,J, drop = FALSE]) else I <- 1:nrow(Z)
-    if(is.null(kweights)) I <- nonDom(Z[,J, drop = FALSE], return.idx = TRUE) else I <- 1:nrow(Z)
-    
-    Zred <- Z[I,J, drop=FALSE] #
+    Zred <- Z[,J, drop=FALSE]
     
     if (nrow(Zred)==1) {
       i <- 1
     } else {
       
       if (!is.null(kweights)){
-        # Irand <- which(!is_dominated(t(Zrand)))
-        # Irand <- nonDom(Zrand[,J,drop = FALSE], return.idx = TRUE)
-        # Irand <- 1:length(J)
-        Zrandred <- Zrand[, J, drop = FALSE]
-        
-        if(copula){
-          Urand <- apply(-Zrandred, 2, faster_rank)
-          # Urand <- Urand[Irand,, drop=FALSE]
-          # Zrandred <- Zrandred[Irand,, drop = FALSE]
-          
-          # best index on randomly sampled points
-          # Ztarget <- Zrandred[which.max(apply(Urand, 1, min)),]
-          Ztarget <- Zrandred[which.max(rowMins(Urand)),]
-          # Ztarget <- Zrand[which.min(apply(Urand, 1, var)),]
-          # i <- which.min(apply(apply(Zred, 2, rank), 1, var))
-        } else {
-          Irand <- nonDom(Zrand[,J,drop = FALSE], return.idx = TRUE)
-          Zrandred <- Zrand[Irand,, drop = FALSE]
-          
-          Shadow_emp <- apply(Zrandred, 2, min)
-          Nadir_emp  <- apply(Zrandred, 2, max)
-          
-          if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
-          if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
-          # alldist2 <- rowSums((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T))^2) -
-          #   as.numeric(((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
-          #   drop(crossprod(Nadir - Shadow, Nadir - Shadow))
-          
-          # alldist2 <- rowSums(((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow)))^2) -
-          #   as.numeric((((Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow))) 
-          #               %*%(matrix(rep(1/sqrt(nobj), nobj), nrow = nobj)))^2)
-          
-          # ratios <- (Zrand - matrix(rep(Nadir, nrow(Zrand)), ncol=nobj, byrow=T) ) /  (matrix(rep(Shadow - Nadir, nrow(Zrand)), ncol=nobj, byrow=T))
-          
-          ratios <- sweep(sweep(Zrandred, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
-          Ztarget <- Zrandred[which.max(apply(ratios, 1, min)),]
-          # Ztarget <- Zrand[which.min(alldist2),]
-        }
-        # now find the closest point on Zred of Zrand[i]
+        Ztarget <- getCKS(Zrand[,J, drop = FALSE], Nadir = Nadir, Shadow = Shadow)$CKS
         i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2))
       } else {
-        if (copula) {
-          Ured <- apply(Z[,J, drop = FALSE], 2, faster_rank)
-          Ured <- -Ured[I,, drop=FALSE]
-          # i <- which.min(apply(Ured, 1, var))
-          # i <- which.max(apply(Ured, 1, min))
-          i <- which.max(rowMins(Ured))
-        } else {
-          Shadow_emp <- apply(Zred, 2, min)
-          Nadir_emp  <- apply(Zred, 2, max)
-          
-          if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
-          if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
-          
-          # Quick fix for distance
-          # alldist2 <- rowSums((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))^2) -
-          #   as.numeric(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
-          #   drop(crossprod(Nadir - Shadow, Nadir - Shadow))
-          # alldist2 <- rowSums(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow)))^2) -
-          #   as.numeric((((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow))) 
-          #               %*%(matrix(rep(1/sqrt(nobj), nobj), nrow = nobj)))^2)
-          
-          ratios <- sweep(sweep(Zred, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
-          i <- which.max(apply(ratios, 1, min))
-          
-          # i <- which.min(alldist2)
-        }
+        i <- getCKS(Zred, Nadir = Nadir, Shadow = Shadow)$id
       }
     }
     NEPoff[u,] <- Zred[i,,drop = FALSE]
@@ -383,6 +370,7 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, copula=FALSE, kweig
   if (return.design==FALSE) return(NEPoff)
   else                     return(list(NEPoff=NEPoff, NE=NE))
 }
+
 
 #' Compute KS equilibrium once Shadow and Nadir are given (minimization)
 #' @param Z matrix ([npts x nobj] of objective values)
@@ -394,6 +382,19 @@ getKS <- function(Z, Nadir, Shadow){
   i <- which.max(apply(ratios, 1, min))
   return(list(KS = Z[i,, drop = FALSE], id = i))
 }
+
+
+#' Compute CKS equilibrium with given Shadow and Nadir (minimization)
+#' @param Z matrix ([npts x nobj] of objective values), supposedly iid
+#' @param Nadir,Shadow vectors defining the line intersecting the Pareto front
+#' @return list with elements \code{KS} for the element of \code{Z} realizing the KS and \code{id} for its row number.  
+#' @noRd
+getCKS <- function(Z, Nadir, Shadow){
+  U <- apply(Z, 2, faster_rank)
+  CKS <- getKS(U, Nadir = Nadir, Shadow = Shadow)
+  return(list(CKS = Z[CKS$id,, drop = FALSE], id = CKS$id))
+}
+
 
 ## Seems faster
 faster_rank <- function(x){

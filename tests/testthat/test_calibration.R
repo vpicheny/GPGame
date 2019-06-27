@@ -43,4 +43,7 @@ Poff <- res$Eq.poff
 plotGame(res, equilibrium = "CKSE", Nadir=Nadir, calibcontrol=calibcontrol) #Nadir=c(Inf, -20))
 
 plotGameGrid(fun=fun1, n.grid=21, calibcontrol=calibcontrol, equilibrium = "KSE", integcontrol=res$integcontrol, Nadir=Nadir) #Nadir=c(Inf, -20))
+
+# TODO add verification
+
 })
