@@ -356,16 +356,15 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
     if (nrow(Zred)==1) {
       i <- 1
     } else {
-      
       if (!is.null(kweights)){
         Ztarget <- getCKS(Zrand[,J, drop = FALSE], Nadir = Nadir, Shadow = Shadow)$CKS
-        i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2))
+        i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = nrow(Zred), ncol = nobj, byrow = T))^2))
       } else {
         i <- getCKS(Zred, Nadir = Nadir, Shadow = Shadow)$id
       }
     }
     NEPoff[u,] <- Zred[i,,drop = FALSE]
-    NE[u]     <- I[i]
+    NE[u]     <- i
   }
   if (return.design==FALSE) return(NEPoff)
   else                     return(list(NEPoff=NEPoff, NE=NE))
