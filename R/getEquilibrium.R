@@ -102,7 +102,8 @@ getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj
   if (equilibrium=="NE"){
     return(getNashEquilibrium(Z = Z, nobj = nobj, n.s = n.s, expanded.indices = expanded.indices, return.design = return.design, sorted = sorted, cross = cross))
   } else if (equilibrium=="KSE") {
-    return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross, Nadir=Nadir, Shadow=Shadow))
+    return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross, Nadir=Nadir, Shadow=Shadow,
+                            calibcontrol = calibcontrol))
     # return(getKSequilibrium(Z = rbind(Z, NSobs), nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross))
   } else if (equilibrium=="CKSE"){
     return(getKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, return.design = return.design, sorted = sorted, cross = cross,
@@ -260,6 +261,7 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
 ##' @noRd
 ##' @importFrom stats var
+##' @importFrom matrixStats rowMins
 getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, copula=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
   
   nsim <- ncol(Z) / nobj
@@ -391,7 +393,6 @@ getKS <- function(Z, Nadir, Shadow){
   ratios <- sweep(sweep(Z, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
   i <- which.max(apply(ratios, 1, min))
   return(list(KS = Z[i,, drop = FALSE], id = i))
-  
 }
 
 ## Seems faster

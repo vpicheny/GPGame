@@ -17,7 +17,8 @@ Imports:
     MASS,
     mnormt,
     mvtnorm,
-    methods
+    methods,
+    matrixStats
 Suggests: DiceOptim, testthat
 LinkingTo: Rcpp
 RoxygenNote: 6.1.1
