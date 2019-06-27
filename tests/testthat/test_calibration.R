@@ -1,22 +1,13 @@
-## Not run: 
+context('Equilibrium computation')
+library(GPareto)
 
+test_that("Calibration mode works",{
 ################################################################
 # Example 1: KS equilibrium, 2 variables, 2 players, no filter
 ################################################################
 
 # Run solver with 6 initial points, 4 iterations
 # Increase n.ite to at least 10 for better results
-
-# Define objective function (R^2 -> R^2)
-fun1 <- function(x, ...)
-{
-  if (is.null(dim(x)))    x <- matrix(x, nrow = 1)
-  b1 <- 15 * x[, 1] - 5
-  b2 <- 15 * x[, 2]
-  return(cbind((b2 - 5.1*(b1/(2*pi))^2 + 5/pi*b1 - 6)^2 + 10*((1 - 1/(8*pi)) * cos(b1) + 1),
-               -sqrt((10.5 - b1)*(b1 + 5.5)*(b2 + 0.5)) - 1/30*(b2 - 5.1*(b1/(2*pi))^2 - 6)^2-
-                 1/3 * ((1 - 1/(8 * pi)) * cos(b1) + 1)))
-}
 
 # To use parallel computation (turn off on Windows)
 library(parallel)
@@ -38,7 +29,7 @@ filtercontrol <- list(nsimPoints=200, ncandPoints=100,
 
 calibcontrol <- list(target=target, log=TRUE, offset=0.01)
 
-res <- solve_game(fun1, equilibrium = "CKSE", crit = "sur", n.init=6, n.ite=n.ite,
+res <- solve_game(P1, equilibrium = "CKSE", crit = "sur", n.init=6, n.ite=n.ite,
                   d = 2, nobj=2, x.to.obj = x.to.obj,
                   integcontrol=list(n.s=n.s, kweights=TRUE,gridtype=gridtype, nsamp=1e3),
                   filtercontrol=filtercontrol, returncontrol=list(track.Eq="mean"),
@@ -52,3 +43,4 @@ Poff <- res$Eq.poff
 plotGame(res, equilibrium = "CKSE", Nadir=Nadir, calibcontrol=calibcontrol) #Nadir=c(Inf, -20))
 
 plotGameGrid(fun=fun1, n.grid=21, calibcontrol=calibcontrol, equilibrium = "KSE", integcontrol=res$integcontrol, Nadir=Nadir) #Nadir=c(Inf, -20))
+})
