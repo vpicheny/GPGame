@@ -4,25 +4,24 @@ library(plot3D)
 library(rgl)
 library(parallel)
 library(DiceOptim)
-# library(Rfast)
-library(matrixStats)
+
 set.seed(42)
 
-testfun <- "DTLZ2"  # "hartman" "DTLZ2"
+testfun <- "hartman"  # "hartman" "DTLZ2"
 config <- "S" # "S", "M", "L", "XL", "baseline", "RS"
 pb_type <- "discrete" # "discrete", "continuous"
 equilibrium <- "CKS" #"KS", "CKS"
 compute_actual <- FALSE
 
 if (testfun == "DTLZ2"){
-  directory <- "~/Code/GPGame/example/Test_results/dtlz2/"
+  # directory <- "~/Code/GPGame/example/Test_results/dtlz2/"
   fun <- DTLZ2
   dim <- 5
   nobj <- 4
   n.init <- 10
   n.ite <- 60
 } else {
-  directory <- "~/Code/GPGame/example/Test_results/hartman/"
+  # directory <- "~/Code/GPGame/example/Test_results/hartman/"
   fun <- function(x){
     I <- matrix(c(rep(0, 6), rep(1, 6), c(0,1,0,0,1,1), c(1,0,1,1,0,0), c(0,0,0,1,1,1), c(1,1,1,0,0,0)), byrow=TRUE, nrow=6)
     J <- matrix(c(1:6, 6:1, c(2,4,6,1,3,5), c(5,3,1,2,4,6), c(3,6,1,4,2,5), c(4,2,6,5,3,1)), byrow=TRUE, nrow=6)
@@ -32,20 +31,20 @@ if (testfun == "DTLZ2"){
       xi <- xj*(.5*I[i,] +.5*(1 - I[i,])) + .5*I[i,]
       y[i] <- -log(-hartman6(xi))
     }
-    return(y)
+    return(y[1:3])
   }
   
   dim <- 6
-  nobj <- 6
+  nobj <- 3
   n.init <- 12
   n.ite <- 78
 }
 
 if (config == "S") {
-  nsimPoints <- 250
-  ncandPoints <- 125
-  n.sim <- 25
-  n.ynew <- 10
+  nsimPoints <- 200
+  ncandPoints <- 100
+  n.sim <- 7
+  n.ynew <- 5
 } else if (config == "M") {
   nsimPoints <- 500
   ncandPoints <- 250
@@ -69,11 +68,11 @@ ntests <- 10
 n.s <- 2e5
 n.s.large <- 1e7
 
-dir.create(file.path(directory), showWarnings = FALSE)
+# dir.create(file.path(directory), showWarnings = FALSE)
 
-exp_name <- paste0(directory, "config_", config_number, "_")
+# exp_name <- paste0(directory, "config_", config_number, "_")
 
-ncores <-  7 #detectCores()
+ncores <- 1  #detectCores()
 
 formals(fun)$nobj <- nobj
 
@@ -123,7 +122,7 @@ if (equilibrium == "KS") {
   # Run solver
   KS_mat <- NULL
   # for(ii in 5){
-  for(ii in 1:ntests){  #ntests
+  for(ii in 3:ntests){
     if (config == "baseline") {
       res <- solve_game_baseline(fun, equilibrium = "KSE", crit = "sur", n.init=n.init, n.ite=n.ite,
                         d = dim, nobj=nobj, x.to.obj = NULL,
@@ -158,7 +157,7 @@ if (equilibrium == "KS") {
                       d = dim, nobj=nobj, x.to.obj = NULL,
                       integcontrol=integcontrol, simucontrol = simucontrol,
                       filtercontrol=filtercontrol, kmcontrol=kmcontrol,
-                      ncores = ncores, trace=3, seed=ii, freq.exploit=5)
+                      ncores = ncores, trace=2, seed=ii, freq.exploit=5)
 
     CKS_mat <- rbind(KS_mat, res$Eq.poff)
     save(list = "res", file=paste0(exp_name, "CKSE_run_", ii, ".RData"))
