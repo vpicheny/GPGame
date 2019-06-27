@@ -249,7 +249,6 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
 ##' @param nobj nb of objectives (or players)
 ##' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
-##' @param cross if TRUE, all the combinations of trajectories are used
 ##' @param copula Boolean: if TRUE, the KS equilibrium is computed in the copula space and the maximum of all objectives is used instead of the Nadir
 ##' @param kweights kriging weights for \code{CKS} (TESTING)
 ##' @param Nadir,Shadow optional vectors of size \code{nobj} to fix the Nadir and/or Shadow to a preset value. If only a subset of values needs to be defined, 
@@ -263,20 +262,15 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
 ##' @noRd
 ##' @importFrom stats var
-getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, cross=FALSE, copula=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
+getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, copula=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
   
   nsim <- ncol(Z) / nobj
   
-  if (cross) {
-    indices <- list()
-    for (u in 1:nobj) indices[[u]] <- (1:nsim)+(u-1)*nsim
-    Jmat <- as.matrix(expand.grid(indices))
-  } else {
-    Jmat <- matrix(NA, nsim, nobj)
-    for (u in 1:nsim) {
-      Jmat[u,] <- seq(u, ncol(Z), nsim)
-    }
+  Jmat <- matrix(NA, nsim, nobj)
+  for (u in 1:nsim) {
+    Jmat[u,] <- seq(u, ncol(Z), nsim)
   }
+  
   
   NEPoff <- matrix(NA, nrow(Jmat), nobj)
   NE     <- rep(NA, nrow(Jmat))
