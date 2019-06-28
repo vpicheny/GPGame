@@ -215,7 +215,7 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
     # I <- which(!is_dominated(t(Z[,J])))
     I <- nonDom(Z[,J, drop = FALSE], return.idx = TRUE) 
     Zred <- Z[I, J, drop=FALSE]
-    Shadow <- apply(Zred, 2, min)
+    Shadow <- colMins(Zred) # apply(Zred, 2, min)
     
     # Shadow <- allShadow[u,]
     
