@@ -358,7 +358,8 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
     } else {
       if (!is.null(kweights)){
         Ztarget <- getCKS(Zrand[,J, drop = FALSE], Nadir = Nadir, Shadow = Shadow)$CKS
-        i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = nrow(Zred), ncol = nobj, byrow = T))^2))
+        i <- which.min(rowSums(sweep(Zred, 2, Ztarget, "-")^2))
+        # i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2)) # NOTE : can in fact be more efficient
       } else {
         i <- getCKS(Zred, Nadir = Nadir, Shadow = Shadow)$id
       }
