@@ -254,6 +254,7 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
 ##' @noRd
 ##' @importFrom stats var
+##' @importFrom matrixStats colMins colMaxs
 getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shadow=NULL, ...){
   
   nsim <- ncol(Z) / nobj
@@ -281,8 +282,8 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shado
     if (nrow(Zred)==1){
       i <- 1
     } else {
-      Shadow_emp <- apply(Zred, 2, min)
-      Nadir_emp  <- apply(Zred, 2, max)
+      Shadow_emp <- colMins(Zred)
+      Nadir_emp  <- colMaxs(Zred)
       
       if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
       if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
@@ -356,6 +357,7 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
     } else {
       if (!is.null(kweights)){
         Ztarget <- getCKS(Zrand[,J, drop = FALSE], Nadir = Nadir, Shadow = Shadow)$CKS
+        # Find closest point from Ztarget in Zred
         i <- which.min(rowSums(sweep(Zred, 2, Ztarget, "-")^2))
         # i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2)) # NOTE : can in fact be more efficient
       } else {
