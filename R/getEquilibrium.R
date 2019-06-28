@@ -254,7 +254,6 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
 ##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
 ##' @noRd
 ##' @importFrom stats var
-##' @importFrom matrixStats rowMins
 getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shadow=NULL, ...){
   
   nsim <- ncol(Z) / nobj
@@ -316,7 +315,6 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shado
 ##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
 ##' @noRd
 ##' @importFrom stats var
-##' @importFrom matrixStats rowMins
 getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
   
   if(is.null(Nadir)) Nadir <- rep(1, nobj)
@@ -377,9 +375,10 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
 #' @param Nadir,Shadow vectors defining the line intersecting the Pareto front
 #' @return list with elements \code{KS} for the element of \code{Z} realizing the KS and \code{id} for its row number.  
 #' @noRd
+#' @importFrom matrixStats rowMins
 getKS <- function(Z, Nadir, Shadow){
   ratios <- sweep(sweep(Z, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
-  i <- which.max(apply(ratios, 1, min))
+  i <- which.max(rowMins(ratios))
   return(list(KS = Z[i,, drop = FALSE], id = i))
 }
 
