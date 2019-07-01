@@ -64,7 +64,7 @@ if (config == "S") {
 }
 
 config_number <-  paste0(config, "_", pb_type)
-  
+
 ntests <- 10
 n.s <- 2e5
 n.s.large <- 1e7
@@ -115,7 +115,7 @@ if (compute_actual) {
 if (equilibrium == "KS") {
   if (compute_actual) {
     KS_act <- getEquilibrium(pf, equilibrium = "KSE", nobj = nobj)
-
+    
     save(list = c("ntests", "n.init", "Shadow", "Nadir", "pf", "fun.grid", "integcontrol", "KS_act"),
          file=paste0(exp_name, "config_and_solution.RData"))
   }
@@ -126,10 +126,10 @@ if (equilibrium == "KS") {
   for(ii in 1:ntests){  #ntests
     if (config == "baseline") {
       res <- solve_game_baseline(fun, equilibrium = "KSE", crit = "sur", n.init=n.init, n.ite=n.ite,
-                        d = dim, nobj=nobj, x.to.obj = NULL,
-                        integcontrol=integcontrol, simucontrol = simucontrol,
-                        filtercontrol=filtercontrol, kmcontrol=kmcontrol,
-                        ncores = ncores, trace=2, seed=ii, freq.exploit=5)
+                                 d = dim, nobj=nobj, x.to.obj = NULL,
+                                 integcontrol=integcontrol, simucontrol = simucontrol,
+                                 filtercontrol=filtercontrol, kmcontrol=kmcontrol,
+                                 ncores = ncores, trace=2, seed=ii, freq.exploit=5)
     } else if (config == "RS") {
       res <- solve_game_baseline(fun, equilibrium = "KSE", crit = "sur", n.init=n.init, n.ite=n.ite,
                                  d = dim, nobj=nobj, x.to.obj = NULL,
@@ -149,9 +149,9 @@ if (equilibrium == "KS") {
 } else {
   n.samp <- 5e3 #sampled points for Oakley-style interpolation of simulations
   integcontrol <- c(integcontrol, list(kweights = TRUE, nsamp = n.samp))
-
+  
   CKS_mat <- NULL
-
+  
   for(ii in 1:ntests){
     # Run solver with 50 initial points, 50 iterations
     res <- solve_game(fun, equilibrium = "CKSE", crit = "sur", n.init=n.init, n.ite=n.ite,
@@ -159,7 +159,7 @@ if (equilibrium == "KS") {
                       integcontrol=integcontrol, simucontrol = simucontrol,
                       filtercontrol=filtercontrol, kmcontrol=kmcontrol,
                       ncores = ncores, trace=3, seed=ii, freq.exploit=5)
-
+    
     CKS_mat <- rbind(KS_mat, res$Eq.poff)
     save(list = "res", file=paste0(exp_name, "CKSE_run_", ii, ".RData"))
   }
