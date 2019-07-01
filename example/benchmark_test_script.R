@@ -20,7 +20,7 @@ if (testfun == "DTLZ2"){
   dim <- 5
   nobj <- 4
   n.init <- 10
-  n.ite <- 60
+  n.ite <- 2
 } else {
   directory <- "~/Code/GPGame/example/Test_results/hartman/"
   fun <- function(x){
