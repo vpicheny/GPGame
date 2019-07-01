@@ -259,10 +259,11 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shado
   
   nsim <- ncol(Z) / nobj
   
-  Jmat <- matrix(NA, nsim, nobj)
-  for (u in 1:nsim) {
-    Jmat[u,] <- seq(u, ncol(Z), nsim)
-  }
+  # Jmat <- matrix(NA, nsim, nobj)
+  # for (u in 1:nsim) {
+  #   Jmat[u,] <- seq(u, ncol(Z), nsim)
+  # }
+  Jmat <- matrix(1:(nsim*nobj), nsim, nobj)
   
   NEPoff <- matrix(NA, nrow(Jmat), nobj)
   NE     <- rep(NA, nrow(Jmat))
@@ -285,10 +286,10 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shado
       Shadow_emp <- colMins(Zred)
       Nadir_emp  <- colMaxs(Zred)
       
-      if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
-      if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
+      if (!is.null(Nadir)) Nadir_emp <- pmin(Nadir, Nadir_emp)
+      if (!is.null(Shadow)) Shadow_emp <- pmax(Shadow, Shadow_emp)
       
-      i <- getKS_cpp(Zred, Nadir = Nadir, Shadow = Shadow)
+      i <- getKS_cpp(Zred, Nadir = Nadir_emp, Shadow = Shadow_emp)
     }
     
     NEPoff[u,] <- Zred[i,,drop = FALSE]
@@ -323,10 +324,11 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
   
   nsim <- ncol(Z) / nobj
   
-  Jmat <- matrix(NA, nsim, nobj)
-  for (u in 1:nsim) {
-    Jmat[u,] <- seq(u, ncol(Z), nsim)
-  }
+  # Jmat <- matrix(NA, nsim, nobj)
+  # for (u in 1:nsim) {
+  #   Jmat[u,] <- seq(u, ncol(Z), nsim)
+  # }
+  Jmat <- matrix(1:(nsim*nobj), nsim, nobj)
   
   NEPoff <- matrix(NA, nrow(Jmat), nobj)
   NE     <- rep(NA, nrow(Jmat))
