@@ -14,6 +14,8 @@ test_that("KS equilibrium computation is correct", {
   Shadow <- apply(PF, 2, min)
   Nadir <- apply(PF, 2, max)
   KSeq <- GPGame:::getKS(Z = Z, Nadir = Nadir, Shadow = Shadow)
+  KSeq2 <- GPGame:::getKS_cpp(Z, Nadir, Shadow)
+  expect_equal(KSeq$id, KSeq2)
   
   ratios <- (matrix(Nadir, nrow = nrow(PF), ncol = ncol(PF), byrow = TRUE) - PF) %*% diag(1/(Nadir - Shadow))
   KS_ref <- PF[which.max(apply(ratios, 1, min)),, drop = FALSE]
@@ -34,6 +36,8 @@ test_that("KS equilibrium computation is correct", {
   Nadir <- rep(0, nvar)
   KS_ref <- matrix(rep(- 1/sqrt(nvar), nvar), nrow = 1)
   KSeq <- GPGame:::getKS(Z = Z, Nadir = Nadir, Shadow = Shadow)
+  KSeq2 <- GPGame:::getKS_cpp(Z = Z, Nadir = Nadir, Shadow = Shadow)
+  expect_equal(KSeq$id, KSeq2)
   
   expect_equal(KSeq$KS, KS_ref, tol = 1e-2)
 })

@@ -288,7 +288,7 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shado
       if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
       if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
       
-      i <- getKS(Zred, Nadir = Nadir, Shadow = Shadow)$id
+      i <- getKS_cpp(Zred, Nadir = Nadir, Shadow = Shadow)
     }
     
     NEPoff[u,] <- Zred[i,,drop = FALSE]
@@ -392,8 +392,8 @@ getKS <- function(Z, Nadir, Shadow){
 #' @noRd
 getCKS <- function(Z, Nadir, Shadow){
   U <- apply(Z, 2, faster_rank)
-  CKS <- getKS(U, Nadir = Nadir, Shadow = Shadow)
-  return(list(CKS = Z[CKS$id,, drop = FALSE], id = CKS$id))
+  CKS <- getKS_cpp(U, Nadir = Nadir, Shadow = Shadow)
+  return(list(CKS = Z[CKS,, drop = FALSE], id = CKS))
 }
 
 

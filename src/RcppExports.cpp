@@ -5,6 +5,19 @@
 
 using namespace Rcpp;
 
+// getKS_cpp
+int getKS_cpp(NumericMatrix Z, NumericVector Nadir, NumericVector Shadow);
+RcppExport SEXP _GPGame_getKS_cpp(SEXP ZSEXP, SEXP NadirSEXP, SEXP ShadowSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type Nadir(NadirSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type Shadow(ShadowSEXP);
+    rcpp_result_gen = Rcpp::wrap(getKS_cpp(Z, Nadir, Shadow));
+    return rcpp_result_gen;
+END_RCPP
+}
 // PSNE_sparseMat_cross
 LogicalMatrix PSNE_sparseMat_cross(NumericVector NS, NumericMatrix Poffs, IntegerMatrix expindices, IntegerMatrix combisim, int ncross);
 RcppExport SEXP _GPGame_PSNE_sparseMat_cross(SEXP NSSEXP, SEXP PoffsSEXP, SEXP expindicesSEXP, SEXP combisimSEXP, SEXP ncrossSEXP) {
@@ -99,6 +112,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_GPGame_getKS_cpp", (DL_FUNC) &_GPGame_getKS_cpp, 3},
     {"_GPGame_PSNE_sparseMat_cross", (DL_FUNC) &_GPGame_PSNE_sparseMat_cross, 5},
     {"_GPGame_getPoffsCross", (DL_FUNC) &_GPGame_getPoffsCross, 4},
     {"_GPGame_PSNE_sparseMat", (DL_FUNC) &_GPGame_PSNE_sparseMat, 3},
