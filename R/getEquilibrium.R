@@ -421,12 +421,13 @@ faster_rank <- function(x){
 #' @param Urand ranks of Zrand
 #' @param Zred matrix from which the CKSE is searched, not iid
 rel_ranks <- function(Zrand, Urand, Zred){
-  Ured <- matrix(NA, nrow = nrow(Zred), ncol = ncol(Zred))
-  for(i in 1:nrow(Zred)){
-    for(j in 1:ncol(Zrand)){
-      Ured[i,j] <- sum(Zrand[,j] < Zred[i,j])
-    }
-  }
+  Ured = t(apply(Zred, 1, function(x) return(colSums(Zrand < x))))
+  # Ured <- matrix(NA, nrow = nrow(Zred), ncol = ncol(Zred))
+  # for(i in 1:nrow(Zred)){
+  #   for(j in 1:ncol(Zrand)){
+  #     Ured[i,j] <- sum(Zrand[,j] < Zred[i,j])
+  #   }
+  # }
   return(Ured)
 }
 
