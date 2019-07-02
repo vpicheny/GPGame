@@ -358,10 +358,13 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
       i <- 1
     } else {
       if (!is.null(kweights)){
-        Ztarget <- getCKS(Zrand[,J, drop = FALSE], Nadir = Nadir, Shadow = Shadow)$CKS
+        i <- getCKS(Zrand[,J, drop = FALSE], Nadir = Nadir, Shadow = Shadow, Zred = Zred)$id
+          
+        # Ztarget <- getCKS(Zrand[,J, drop = FALSE], Nadir = Nadir, Shadow = Shadow)$CKS
+
         # Find closest point from Ztarget in Zred
-        i <- which.min(rowSums(sweep(Zred, 2, Ztarget, "-")^2))
-        # i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2)) # NOTE : can in fact be more efficient
+        # i <- which.min(rowSums(sweep(Zred, 2, Ztarget, "-")^2))
+        # i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2)) # NOTE : can in fact be more efficient compared to sweep
       } else {
         i <- getCKS(Zred, Nadir = Nadir, Shadow = Shadow)$id
       }
@@ -377,7 +380,8 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
 #' Compute KS equilibrium once Shadow and Nadir are given (minimization)
 #' @param Z matrix ([npts x nobj] of objective values)
 #' @param Nadir,Shadow vectors defining the line intersecting the Pareto front
-#' @return list with elements \code{KS} for the element of \code{Z} realizing the KS and \code{id} for its row number.  
+#' @return list with elements \code{KS} for the element of \code{Z} realizing the KS and \code{id} for its row number.
+#' @details slower, used for testing now 
 #' @noRd
 #' @importFrom matrixStats rowMins
 getKS <- function(Z, Nadir, Shadow){
@@ -390,17 +394,36 @@ getKS <- function(Z, Nadir, Shadow){
 #' Compute CKS equilibrium with given Shadow and Nadir (minimization)
 #' @param Z matrix ([npts x nobj] of objective values), supposedly iid
 #' @param Nadir,Shadow vectors defining the line intersecting the Pareto front
-#' @return list with elements \code{KS} for the element of \code{Z} realizing the KS and \code{id} for its row number.  
+#' @param Zred matrix ([npts2 x nobj] of objective values), that may not be iid and in which the CKS is ultimately sought
+#' @return list with elements \code{CKS} for the element of \code{Z} realizing the CKS and \code{id} for its row number.  
 #' @noRd
-getCKS <- function(Z, Nadir, Shadow){
+getCKS <- function(Z, Nadir, Shadow, Zred = NULL){
   U <- apply(Z, 2, faster_rank)
-  CKS <- getKS_cpp(U, Nadir = Nadir, Shadow = Shadow)
-  return(list(CKS = Z[CKS,, drop = FALSE], id = CKS))
+  
+  if(!is.null(Zred)){
+    U2 <- rel_ranks(Z, U, Zred)
+    CKS <- getKS_cpp(U2, Nadir = Nadir, Shadow = Shadow)
+    return(list(CKS = Zred[CKS,, drop = FALSE], id = CKS))
+  }else{
+    CKS <- getKS_cpp(U, Nadir = Nadir, Shadow = Shadow)
+    return(list(CKS = Z[CKS,, drop = FALSE], id = CKS))
+  }
+
 }
 
 
 ## Seems faster
 faster_rank <- function(x){
   return(order(order(x)))
+}
+
+rel_ranks <- function(Zrand, Urand, Zred){
+  Ured <- matrix(NA, nrow = nrow(Zred), ncol = ncol(Zred))
+  for(i in 1:nrow(Zred)){
+    for(j in 1:ncol(Zrand)){
+      Ured[i,j] <- sum(Zrand[,j] < Zred[i,j])
+    }
+  }
+  return(Ured)
 }
 
