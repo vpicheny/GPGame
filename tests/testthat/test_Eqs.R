@@ -212,8 +212,8 @@ test_that("Test cpp routines", {
   ranks_cpp <- GPGame:::rel_ranks_cpp(Zrand = Zrand, Zred = Zred)
   
   expect_equal(ranks_ref, ranks_cpp)
-  microbenchmark(GPGame:::rel_ranks(Zrand = Zrand, Zred = Zred),
-                 GPGame:::rel_ranks_cpp(Zrand = Zrand, Zred = Zred))
+  # microbenchmark(GPGame:::rel_ranks(Zrand = Zrand, Zred = Zred),
+  #                GPGame:::rel_ranks_cpp(Zrand = Zrand, Zred = Zred))
   })
 
 

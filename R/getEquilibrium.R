@@ -399,7 +399,7 @@ getKS <- function(Z, Nadir, Shadow){
 #' @noRd
 getCKS <- function(Z, Nadir, Shadow, Zred = NULL){
   if(!is.null(Zred)){
-    U2 <- rel_ranks_cpp(Z, U, Zred)
+    U2 <- rel_ranks_cpp(Z, Zred)
     CKS <- getKS_cpp(U2, Nadir = Nadir, Shadow = Shadow)
     return(list(CKS = Zred[CKS,, drop = FALSE], id = CKS))
   }else{
