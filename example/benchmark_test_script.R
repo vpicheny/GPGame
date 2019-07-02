@@ -8,21 +8,21 @@ library(DiceOptim)
 library(matrixStats)
 set.seed(42)
 
-testfun <- "DTLZ2"  # "hartman" "DTLZ2"
+testfun <- "hartman"  # "hartman" "DTLZ2"
 config <- "S" # "S", "M", "L", "XL", "baseline", "RS"
 pb_type <- "discrete" # "discrete", "continuous"
 equilibrium <- "KS" #"KS", "CKS"
 compute_actual <- FALSE
 
 if (testfun == "DTLZ2"){
-  directory <- "~/Code/GPGame/example/Test_results/dtlz2/"
+  # directory <- "~/Code/GPGame/example/Test_results/dtlz2/"
   fun <- DTLZ2
   dim <- 5
   nobj <- 4
   n.init <- 10
   n.ite <- 2
 } else {
-  directory <- "~/Code/GPGame/example/Test_results/hartman/"
+  # directory <- "~/Code/GPGame/example/Test_results/hartman/"
   fun <- function(x){
     I <- matrix(c(rep(0, 6), rep(1, 6), c(0,1,0,0,1,1), c(1,0,1,1,0,0), c(0,0,0,1,1,1), c(1,1,1,0,0,0)), byrow=TRUE, nrow=6)
     J <- matrix(c(1:6, 6:1, c(2,4,6,1,3,5), c(5,3,1,2,4,6), c(3,6,1,4,2,5), c(4,2,6,5,3,1)), byrow=TRUE, nrow=6)
@@ -63,17 +63,17 @@ if (config == "S") {
   n.ynew <- 40
 }
 
-config_number <-  paste0(config, "_", pb_type)
+# config_number <-  paste0(config, "_", pb_type)
 
 ntests <- 10
 n.s <- 2e5
 n.s.large <- 1e7
 
-dir.create(file.path(directory), showWarnings = FALSE)
+# dir.create(file.path(directory), showWarnings = FALSE)
 
-exp_name <- paste0(directory, "config_", config_number, "_")
+# exp_name <- paste0(directory, "config_", config_number, "_")
 
-ncores <-  7 #detectCores()
+ncores <-  4 #detectCores()
 
 formals(fun)$nobj <- nobj
 
@@ -116,8 +116,8 @@ if (equilibrium == "KS") {
   if (compute_actual) {
     KS_act <- getEquilibrium(pf, equilibrium = "KSE", nobj = nobj)
     
-    save(list = c("ntests", "n.init", "Shadow", "Nadir", "pf", "fun.grid", "integcontrol", "KS_act"),
-         file=paste0(exp_name, "config_and_solution.RData"))
+    # save(list = c("ntests", "n.init", "Shadow", "Nadir", "pf", "fun.grid", "integcontrol", "KS_act"),
+         # file=paste0(exp_name, "config_and_solution.RData"))
   }
   
   # Run solver
@@ -144,7 +144,7 @@ if (equilibrium == "KS") {
                         ncores = ncores, trace=2, seed=ii, freq.exploit=5)
     }
     KS_mat <- rbind(KS_mat, res$Eq.poff)
-    save(list = "res", file=paste0(exp_name, "KSE_run_", ii, ".RData"))
+    # save(list = "res", file=paste0(exp_name, "KSE_run_", ii, ".RData"))
   } 
 } else {
   n.samp <- 5e3 #sampled points for Oakley-style interpolation of simulations
@@ -161,6 +161,6 @@ if (equilibrium == "KS") {
                       ncores = ncores, trace=3, seed=ii, freq.exploit=5)
     
     CKS_mat <- rbind(KS_mat, res$Eq.poff)
-    save(list = "res", file=paste0(exp_name, "CKSE_run_", ii, ".RData"))
+    # save(list = "res", file=paste0(exp_name, "CKSE_run_", ii, ".RData"))
   }
 }
