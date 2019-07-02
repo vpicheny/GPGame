@@ -398,13 +398,12 @@ getKS <- function(Z, Nadir, Shadow){
 #' @return list with elements \code{CKS} for the element of \code{Z} realizing the CKS and \code{id} for its row number.  
 #' @noRd
 getCKS <- function(Z, Nadir, Shadow, Zred = NULL){
-  U <- apply(Z, 2, faster_rank)
-  
   if(!is.null(Zred)){
     U2 <- rel_ranks_cpp(Z, U, Zred)
     CKS <- getKS_cpp(U2, Nadir = Nadir, Shadow = Shadow)
     return(list(CKS = Zred[CKS,, drop = FALSE], id = CKS))
   }else{
+    U <- apply(Z, 2, faster_rank)
     CKS <- getKS_cpp(U, Nadir = Nadir, Shadow = Shadow)
     return(list(CKS = Z[CKS,, drop = FALSE], id = CKS))
   }
@@ -418,10 +417,9 @@ faster_rank <- function(x){
 }
 
 #' @param Zrand iid matrix
-#' @param Urand ranks of Zrand
 #' @param Zred matrix from which the CKSE is searched, not iid
 #' @noRd
-rel_ranks <- function(Zrand, Urand, Zred){
+rel_ranks <- function(Zrand, Zred){
   Ured <- matrix(NA, nrow = nrow(Zred), ncol = ncol(Zred))
   for(i in 1:nrow(Zred)){
     for(j in 1:ncol(Zrand)){
