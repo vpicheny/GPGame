@@ -98,6 +98,18 @@ test_that("CKS equilibrium computation is correct", {
   # plot3d(Z)
   # plotParetoEmp(PF)
   
+  # With Zred
+  U2 <- matrix(rnorm(n * nvar), n)
+  U2 <- t(apply(U2, 1, function(x) return(if(sum(x^2) < 1) return(-abs(x)) else return(-abs(x)/sqrt(sum(x^2)))))) + 1
+  Z2 <- U2
+  Z2[,1] <- qbeta(U2[,1], 2.3 , 0.5)
+  Z2[,2] <- qbeta(U2[,2], 2   , 1.5)
+  Z2[,3] <- qbeta(U2[,3], 0.75, 1.2)
+  
+  CKS_U2 <- GPGame:::getCKS(Z2, Nadir = Nadir, Shadow = Shadow)
+  CKS_U2_kweights <- GPGame:::getCKS(Z, Nadir = Nadir, Shadow = Shadow, Zred = Z2)
+  expect_equal(CKS_U2$CKS, CKS_U2_kweights$CKS)
+  
 })
 
 test_that("getEquilibrium works as intended", {
@@ -155,14 +167,23 @@ test_that("getEquilibrium works as intended", {
   # points3d(CKS_ref, col = "orange", size = 5)
   
   # then for simulated equilibria
+  nsim <- 7
   Simus <- NULL
+  
   for(u in 1:3){
-    Simus <- rbind(Simus, simulate(models[[u]], newdata = Xsamp[1:1000,], nsim = 5, cond = TRUE, checkNames = FALSE))
+    Simus <- rbind(Simus, simulate(models[[u]], newdata = Xsamp[1:1000,], nsim = nsim, cond = TRUE, checkNames = FALSE))
   }
   Simus <- t(Simus)
   
   KS_sim <- getEquilibrium(Simus, nobj = 3, equilibrium = "KSE", return.design = TRUE)
   CKS_sim <- getEquilibrium(Simus, nobj = 3, equilibrium = "CKSE", return.design = TRUE)
+  
+  # Check KS and CKS one set of simulations at a time
+  for(u in 1:nsim){
+    expect_equal(KS_sim$NEPoff[u,, drop = FALSE], getEquilibrium(Simus[,seq(u, nsim*3, by = nsim)], nobj = 3, equilibrium = "KSE", return.design = FALSE))
+    expect_equal(CKS_sim$NEPoff[u,, drop = FALSE], getEquilibrium(Simus[,seq(u, nsim*3, by = nsim)], nobj = 3, equilibrium = "CKSE", return.design = FALSE))
+  }
+  
   
   # with kweights
   kweights2 <- list()
@@ -174,9 +195,9 @@ test_that("getEquilibrium works as intended", {
   }
   CKS_sim2 <- getEquilibrium(Simus, nobj = 3, equilibrium = "CKSE", return.design = TRUE, kweights = kweights2)
   
-  expect_equal(KS_sim$NEPoff, matrix(KS_ref, nrow = 5, ncol = nvar, byrow = TRUE), tol = 5e-2)
-  expect_equal(CKS_sim$NEPoff, matrix(CKS_ref, nrow = 5, ncol = nvar, byrow = TRUE), tol = 5e-2)
-  expect_equal(CKS_sim2$NEPoff, matrix(CKS_ref, nrow = 5, ncol = nvar, byrow = TRUE), tol = 5e-2)
+  expect_equal(KS_sim$NEPoff, matrix(KS_ref, nrow = nsim, ncol = nvar, byrow = TRUE), tol = 5e-2)
+  expect_equal(CKS_sim$NEPoff, matrix(CKS_ref, nrow = nsim, ncol = nvar, byrow = TRUE), tol = 5e-2)
+  expect_equal(CKS_sim2$NEPoff, matrix(CKS_ref, nrow = nsim, ncol = nvar, byrow = TRUE), tol = 5e-2)
   
 })
 
