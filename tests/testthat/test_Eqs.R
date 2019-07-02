@@ -98,6 +98,18 @@ test_that("CKS equilibrium computation is correct", {
   # plot3d(Z)
   # plotParetoEmp(PF)
   
+  # With Zred
+  U2 <- matrix(rnorm(n * nvar), n)
+  U2 <- t(apply(U2, 1, function(x) return(if(sum(x^2) < 1) return(-abs(x)) else return(-abs(x)/sqrt(sum(x^2)))))) + 1
+  Z2 <- U2
+  Z2[,1] <- qbeta(U2[,1], 2.3 , 0.5)
+  Z2[,2] <- qbeta(U2[,2], 2   , 1.5)
+  Z2[,3] <- qbeta(U2[,3], 0.75, 1.2)
+  
+  CKS_U2 <- GPGame:::getCKS(Z2, Nadir = Nadir, Shadow = Shadow)
+  CKS_U2_kweights <- GPGame:::getCKS(Z, Nadir = Nadir, Shadow = Shadow, Zred = Z2)
+  expect_equal(CKS_U2$CKS, CKS_U2_kweights$CKS)
+  
 })
 
 test_that("getEquilibrium works as intended", {
