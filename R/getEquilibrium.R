@@ -363,39 +363,7 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
         i <- which.min(rowSums(sweep(Zred, 2, Ztarget, "-")^2))
         # i <- which.min(rowSums((Zred - matrix(Ztarget, nrow = length(I), ncol = nobj, byrow = T))^2)) # NOTE : can in fact be more efficient
       } else {
-<<<<<<< HEAD
-        if (copula) {
-          # Irand <- nonDom(Z[,J,drop = FALSE], return.idx = TRUE)
-          # Zrandred <- Zrandred[Irand,, drop = FALSE]
-          
-          Ured <- -apply(Zred[,J, drop = FALSE], 2, faster_rank)
-          # Ured <- -Ured[I,, drop=FALSE]
-          # i <- which.min(apply(Ured, 1, var))
-          # i <- which.max(apply(Ured, 1, min))
-          i <- which.max(rowMins(Ured))
-        } else {
-          Shadow_emp <- apply(Zred, 2, min)
-          Nadir_emp  <- apply(Zred, 2, max)
-          
-          if (!is.null(Nadir)) Nadir <- pmin(Nadir, Nadir_emp) else Nadir <- Nadir_emp
-          if (!is.null(Shadow)) Shadow <- pmax(Shadow, Shadow_emp) else Shadow <- Shadow_emp
-          
-          # Quick fix for distance
-          # alldist2 <- rowSums((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))^2) -
-          #   as.numeric(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T))%*%(Nadir - Shadow))^2) /
-          #   drop(crossprod(Nadir - Shadow, Nadir - Shadow))
-          # alldist2 <- rowSums(((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow)))^2) -
-          #   as.numeric((((Zred - matrix(rep(Nadir, nrow(Zred)), ncol=nobj, byrow=T)) %*% diag(1/(Nadir - Shadow))) 
-          #               %*%(matrix(rep(1/sqrt(nobj), nobj), nrow = nobj)))^2)
-          
-          ratios <- sweep(sweep(Zred, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
-          i <- which.max(apply(ratios, 1, min))
-          
-          # i <- which.min(alldist2)
-        }
-=======
         i <- getCKS(Zred, Nadir = Nadir, Shadow = Shadow)$id
->>>>>>> 956b3547668bfdff2bfc5bb2d88832bf38f77935
       }
     }
     NEPoff[u,] <- Zred[i,,drop = FALSE]
