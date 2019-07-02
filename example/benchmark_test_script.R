@@ -11,7 +11,7 @@ set.seed(42)
 testfun <- "DTLZ2"  # "hartman" "DTLZ2"
 config <- "S" # "S", "M", "L", "XL", "baseline", "RS"
 pb_type <- "discrete" # "discrete", "continuous"
-equilibrium <- "CKS" #"KS", "CKS"
+equilibrium <- "KS" #"KS", "CKS"
 compute_actual <- FALSE
 
 if (testfun == "DTLZ2"){
