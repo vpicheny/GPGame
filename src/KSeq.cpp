@@ -37,3 +37,30 @@ int getKS_cpp(NumericMatrix Z, NumericVector Nadir, NumericVector Shadow) {
   
   return(iKS + 1);
 }
+
+// [[Rcpp::export]]
+NumericMatrix rel_ranks_cpp(NumericMatrix Zrand, NumericMatrix Zred){
+  int nobj = Zrand.ncol();
+  int nZ = Zrand.nrow();
+  int nZr = Zred.nrow();
+  
+  NumericMatrix Ured(nZr, nobj);
+  
+  double* ptrZ;
+  double* ptrZr = &Zred(0,0);
+  double* ptrUr = &Ured(0,0);
+  
+  for(int i = 0; i < nZr; i++, ptrZr++, ptrUr++){
+    ptrZ = &Zrand(0,0);
+    for(int j = 0; j < nobj; j++){
+      for(int k = 0; k < nZ; k++, ptrZ++){
+        *ptrUr += (*ptrZ < *ptrZr);
+      }
+      ptrUr += nZr;
+      ptrZr += nZr;
+    }
+    ptrUr -= nZr*nobj;
+    ptrZr -= nZr*nobj;
+  }
+  return(Ured);
+}
