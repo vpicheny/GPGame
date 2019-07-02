@@ -18,6 +18,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rel_ranks_cpp
+NumericMatrix rel_ranks_cpp(NumericMatrix Zrand, NumericMatrix Urand, NumericMatrix Zred);
+RcppExport SEXP _GPGame_rel_ranks_cpp(SEXP ZrandSEXP, SEXP UrandSEXP, SEXP ZredSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type Zrand(ZrandSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Urand(UrandSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Zred(ZredSEXP);
+    rcpp_result_gen = Rcpp::wrap(rel_ranks_cpp(Zrand, Urand, Zred));
+    return rcpp_result_gen;
+END_RCPP
+}
 // PSNE_sparseMat_cross
 LogicalMatrix PSNE_sparseMat_cross(NumericVector NS, NumericMatrix Poffs, IntegerMatrix expindices, IntegerMatrix combisim, int ncross);
 RcppExport SEXP _GPGame_PSNE_sparseMat_cross(SEXP NSSEXP, SEXP PoffsSEXP, SEXP expindicesSEXP, SEXP combisimSEXP, SEXP ncrossSEXP) {
@@ -113,6 +126,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GPGame_getKS_cpp", (DL_FUNC) &_GPGame_getKS_cpp, 3},
+    {"_GPGame_rel_ranks_cpp", (DL_FUNC) &_GPGame_rel_ranks_cpp, 3},
     {"_GPGame_PSNE_sparseMat_cross", (DL_FUNC) &_GPGame_PSNE_sparseMat_cross, 5},
     {"_GPGame_getPoffsCross", (DL_FUNC) &_GPGame_getPoffsCross, 4},
     {"_GPGame_PSNE_sparseMat", (DL_FUNC) &_GPGame_PSNE_sparseMat, 3},

@@ -8,6 +8,10 @@ getKS_cpp <- function(Z, Nadir, Shadow) {
     .Call(`_GPGame_getKS_cpp`, Z, Nadir, Shadow)
 }
 
+rel_ranks_cpp <- function(Zrand, Urand, Zred) {
+    .Call(`_GPGame_rel_ranks_cpp`, Zrand, Urand, Zred)
+}
+
 PSNE_sparseMat_cross <- function(NS, Poffs, expindices, combisim, ncross) {
     .Call(`_GPGame_PSNE_sparseMat_cross`, NS, Poffs, expindices, combisim, ncross)
 }
