@@ -50,7 +50,7 @@ NumericMatrix rel_ranks_cpp(NumericMatrix Zrand, NumericMatrix Zred){
   double* ptrZr = &Zred(0,0);
   double* ptrUr = &Ured(0,0);
   
-  for(int i = 0; i < nZr; i++, ptrZr++, ptrUr++){
+  for(int i = 0; i < nZr; i++){
     ptrZ = &Zrand(0,0);
     for(int j = 0; j < nobj; j++){
       for(int k = 0; k < nZ; k++, ptrZ++){
@@ -59,8 +59,8 @@ NumericMatrix rel_ranks_cpp(NumericMatrix Zrand, NumericMatrix Zred){
       ptrUr += nZr;
       ptrZr += nZr;
     }
-    ptrUr -= nZr*nobj;
-    ptrZr -= nZr*nobj;
+    ptrUr -= nZr*nobj - 1;
+    ptrZr -= nZr*nobj - 1;
   }
   return(Ured);
 }

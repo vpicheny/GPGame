@@ -2,6 +2,7 @@
 
 library(GPGame)
 library(DiceKriging)
+set.seed(42)
 
 # 6 objs function
 fun <- function(x){
@@ -88,8 +89,9 @@ for (id1 in 1:5){
     
     ratio_12 <- (matrix(Shadow, nrow = length(Pset_12), ncol = 6, byrow = T) - Yall[Pset_12,]) %*% diag(1/(Nadir - Shadow))
     ratio_12 <- apply(ratio_12[,c(id1, id2)], 1, min)
-    plot(ratio_12, ylim = c(-1,0), main = paste('2 obj results, PF obj_1:', id1, 'obj_2:', id2, ' diff:', signif(max(ratio_12) - ratio_KS_12, 3)))
     ratio_KS_12 <- min(((Shadow - KSeq)/(Nadir - Shadow))[c(id1, id2)])
+    
+    plot(ratio_12, ylim = c(-1,0), main = paste('2 obj results, PF obj_1:', id1, 'obj_2:', id2, ' diff:', signif(max(ratio_12) - ratio_KS_12, 3)))
     abline(h = ratio_KS_12, col = 'blue')
     
     diff_12 <- c(diff_12, max(ratio_12) - ratio_KS_12)
