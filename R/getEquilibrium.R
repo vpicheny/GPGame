@@ -353,14 +353,15 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
   for (u in 1:nrow(Jmat)) {
     J <- Jmat[u,]
     
-    # filtering dominated points is useful only for limiting the cost of relative rank computation
-    if(is.null(kweights)){
-      I <- 1:nrow(Z)
-    }else{
-      I <- nonDom(Z[,J, drop = FALSE], return.idx = TRUE)
-    }
+    # # filtering dominated points could be useful only for limiting the cost of relative rank computation
+    # if(is.null(kweights)){
+    #   I <- 1:nrow(Z)
+    # }else{
+    #   I <- nonDom(Z[,J, drop = FALSE], return.idx = TRUE)
+    # }
+    # Zred <- Z[I,J, drop=FALSE]
     
-    Zred <- Z[I,J, drop=FALSE]
+    Zred <- Z[,J, drop=FALSE]
     
     if (nrow(Zred)==1) {
       i <- 1
@@ -378,7 +379,7 @@ getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, N
       }
     }
     NEPoff[u,] <- Zred[i,,drop = FALSE]
-    NE[u]     <- I[i]
+    NE[u]     <- i
   }
   if (return.design==FALSE) return(NEPoff)
   else                     return(list(NEPoff=NEPoff, NE=NE))
