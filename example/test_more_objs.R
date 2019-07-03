@@ -47,6 +47,63 @@ for(i in 1:5){
   }
 }
 
+# 3 objs function
+fun3 <- function(x, group1 = c(2,5), group2 = c(1,3), group3 = c(4,6)){
+  tmp <- fun(x)
+  return(c(sum(tmp[group1]), sum(tmp[c(group2)]), sum(tmp[c(group3)])))
+}
+
+# Compute (pure) 3d PFs
+for(i in 1:4){
+  for(j in (i+1):5){
+    for(k in (j+1):6){
+      sol3d <- nsga2(fun3, 6, 3, lower.bounds = rep(0, 6), upper.bounds = rep(1,6), popsize = 300,
+                     group1 = i, group2 = j, group3 = k)
+      Yall <- rbind(Yall, t(apply(sol3d$par, 1, fun)))
+    }
+  }
+}
+
+# 4 objs function
+fun4 <- function(x, group1 = c(2,5), group2 = c(1,3), group3 = c(4), group4 = c(6)){
+  tmp <- fun(x)
+  return(c(sum(tmp[group1]), sum(tmp[c(group2)]), sum(tmp[c(group3)]), sum(tmp[c(group4)])))
+}
+
+# Compute (pure) 4d PFs
+for(i in 1:3){
+  for(j in (i+1):4){
+    for(k in (j+1):5){
+      for(l in (k+1):6){
+        sol4d <- nsga2(fun3, 6, 4, lower.bounds = rep(0, 6), upper.bounds = rep(1,6), popsize = 400,
+                       group1 = i, group2 = j, group3 = k, group4 = l)
+        Yall <- rbind(Yall, t(apply(sol4d$par, 1, fun)))
+      }
+    }
+  }
+}
+
+# 5 objs function
+fun5 <- function(x, group1 = c(2,5), group2 = c(1), group3 = c(4), group4 = c(6), group5 = c(3)){
+  tmp <- fun(x)
+  return(c(sum(tmp[group1]), sum(tmp[c(group2)]), sum(tmp[c(group3)]), sum(tmp[c(group4)]), sum(tmp[c(group5)])))
+}
+
+# Compute (pure) 5d PFs
+for(i in 1:2){
+  for(j in (i+1):3){
+    for(k in (j+1):4){
+      for(l in (k+1):5){
+        for(m in (l+1):6){
+          sol5d <- nsga2(fun3, 6, 5, lower.bounds = rep(0, 6), upper.bounds = rep(1,6), popsize = 500,
+                         group1 = i, group2 = j, group3 = k, group4 = l)
+          Yall <- rbind(Yall, t(apply(sol5d$par, 1, fun)))
+        }
+      }
+    }
+  }
+}
+
 
 Pset <- nonDom(Yall, return.idx = TRUE)
 
@@ -75,27 +132,29 @@ diff_all <- diff_12 <- c()
 
 for (id1 in 1:5){
   for(id2 in (id1+1):6){
-
+    
     Pset_12 <- nonDom(Yall[,c(id1,id2)], return.idx = TRUE)
-    ratios <- (matrix(Shadow, nrow = length(Pset_12), ncol = 6, byrow = T) - Yall[Pset_12,]) %*% diag(1/(Nadir - Shadow))
+    ratios <- (matrix(Nadir, nrow = length(Pset_12), ncol = 6, byrow = T) - Yall[Pset_12,]) %*% diag(1/(Nadir - Shadow))
     
     ratio_all <- apply(ratios, 1, min)
-    ratio_KS <- min((Shadow - KSeq)/(Nadir - Shadow))
+    ratio_KS <- min((Nadir - KSeq)/(Nadir - Shadow))
     diff_all <- c(diff_all, max(ratio_all) - ratio_KS)
     
-    plot(ratio_all, ylim = c(-1,0), main = paste('6 obj results, PF obj_1:', id1, 'obj_2:', id2, ' diff:', signif(max(ratio_all) - ratio_KS, 3)))
+    plot(ratio_all, ylim = c(0,1), main = paste('6 obj results, PF obj_1:', id1, 'obj_2:', id2, ' diff:', signif(max(ratio_all) - ratio_KS, 3)))
     abline(h = ratio_KS, col = 'red')
     
     
-    ratio_12 <- (matrix(Shadow, nrow = length(Pset_12), ncol = 6, byrow = T) - Yall[Pset_12,]) %*% diag(1/(Nadir - Shadow))
+    ratio_12 <- (matrix(Nadir, nrow = length(Pset_12), ncol = 6, byrow = T) - Yall[Pset_12,]) %*% diag(1/(Nadir - Shadow))
     ratio_12 <- apply(ratio_12[,c(id1, id2)], 1, min)
-    ratio_KS_12 <- min(((Shadow - KSeq)/(Nadir - Shadow))[c(id1, id2)])
+    ratio_KS_12 <- min(((Nadir - KSeq)/(Nadir - Shadow))[c(id1, id2)])
     
-    plot(ratio_12, ylim = c(-1,0), main = paste('2 obj results, PF obj_1:', id1, 'obj_2:', id2, ' diff:', signif(max(ratio_12) - ratio_KS_12, 3)))
+    plot(ratio_12, ylim = c(0,1), main = paste('2 obj results, PF obj_1:', id1, 'obj_2:', id2, ' diff:', signif(max(ratio_12) - ratio_KS_12, 3)))
     abline(h = ratio_KS_12, col = 'blue')
     
     diff_12 <- c(diff_12, max(ratio_12) - ratio_KS_12)
   }
 }
 par(mfrow = c(1,1))
+
+boxplot(-diff_all, diff_12, names = c("-Diff on 6 objs", "Diff on 2 objs"))
 
