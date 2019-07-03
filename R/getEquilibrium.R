@@ -407,7 +407,12 @@ getKS <- function(Z, Nadir, Shadow){
 #' @noRd
 getCKS <- function(Z, Nadir, Shadow, Zred = NULL){
   if(!is.null(Zred)){
-    U2 <- rel_ranks_cpp(Z, Zred)
+    # U2 <- rel_ranks_cpp(Z, Zred)
+    
+    Ub <- apply(rbind(Z, Zred), 2, faster_rank)[-(1: nrow(Z)),,drop = F]
+    Ur <- apply(Zred, 2, faster_rank)
+    U2 <- Ub - Ur
+    
     CKS <- getKS_cpp(U2, Nadir = Nadir, Shadow = Shadow)
     return(list(CKS = Zred[CKS,, drop = FALSE], id = CKS))
   }else{
@@ -424,17 +429,17 @@ faster_rank <- function(x){
   return(order(order(x)))
 }
 
-#' @param Zrand iid matrix
-#' @param Zred matrix from which the CKSE is searched, not iid
-#' @noRd
-rel_ranks <- function(Zrand, Zred){
-  # Ured <- t(apply(Zred, 1, function(x) return(colSums(Zrand < x))))
-  Ured <- matrix(NA, nrow = nrow(Zred), ncol = ncol(Zred))
-  for(i in 1:nrow(Zred)){
-    for(j in 1:ncol(Zrand)){
-      Ured[i,j] <- sum(Zrand[,j] < Zred[i,j])
-    }
-  }
-  return(Ured)
-}
+#' #' @param Zrand iid matrix
+#' #' @param Zred matrix from which the CKSE is searched, not iid
+#' #' @noRd
+#' rel_ranks <- function(Zrand, Zred){
+#'   # Ured <- t(apply(Zred, 1, function(x) return(colSums(Zrand < x))))
+#'   Ured <- matrix(NA, nrow = nrow(Zred), ncol = ncol(Zred))
+#'   for(i in 1:nrow(Zred)){
+#'     for(j in 1:ncol(Zrand)){
+#'       Ured[i,j] <- sum(Zrand[,j] < Zred[i,j])
+#'     }
+#'   }
+#'   return(Ured)
+#' }
 

@@ -131,7 +131,7 @@ test_that("getEquilibrium works as intended", {
   
   # plotParetoEmp(response)
   # points3d(response)
-
+  
   models <- list(km(~1, design = design, response = response[,1]),
                  km(~1, design = design, response = response[,2]),
                  km(~1, design = design, response = response[,3]))
@@ -201,19 +201,19 @@ test_that("getEquilibrium works as intended", {
   
 })
 
-test_that("Test cpp routines", {
-  nobj <- 9
-  np1 <- 2000
-  np2 <- 200
-  Zrand <- matrix(rnorm(nobj*np1), np1)
-  Zred <- matrix(rnorm(nobj*np2), np2)
-  
-  ranks_ref <- GPGame:::rel_ranks(Zrand = Zrand, Zred = Zred)
-  ranks_cpp <- GPGame:::rel_ranks_cpp(Zrand = Zrand, Zred = Zred)
-  
-  expect_equal(ranks_ref, ranks_cpp)
-  # microbenchmark(GPGame:::rel_ranks(Zrand = Zrand, Zred = Zred),
-  #                GPGame:::rel_ranks_cpp(Zrand = Zrand, Zred = Zred))
-  })
+# test_that("Test cpp routines", {
+#   nobj <- 9
+#   np1 <- 2000
+#   np2 <- 200
+#   Zrand <- matrix(rnorm(nobj*np1), np1)
+#   Zred <- matrix(rnorm(nobj*np2), np2)
+#   
+#   ranks_ref <- GPGame:::rel_ranks(Zrand = Zrand, Zred = Zred)
+#   ranks_cpp <- GPGame:::rel_ranks_cpp(Zrand = Zrand, Zred = Zred)
+#   
+#   expect_equal(ranks_ref, ranks_cpp)
+#   # microbenchmark(GPGame:::rel_ranks(Zrand = Zrand, Zred = Zred),
+#   #                GPGame:::rel_ranks_cpp(Zrand = Zrand, Zred = Zred))
+# })
 
 
