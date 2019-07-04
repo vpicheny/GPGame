@@ -406,18 +406,22 @@ getKS <- function(Z, Nadir, Shadow){
 #' @param Zred matrix ([npts2 x nobj] of objective values), that may not be iid and in which the CKS is ultimately sought
 #' @return list with elements \code{CKS} for the element of \code{Z} realizing the CKS and \code{id} for its row number.  
 #' @noRd
+#' @importFrom matrixStats colRanks
 getCKS <- function(Z, Nadir, Shadow, Zred = NULL){
   if(!is.null(Zred)){
     # U2 <- rel_ranks_cpp(Z, Zred)
     
-    Ub <- apply(rbind(Z, Zred), 2, faster_rank)[-(1: nrow(Z)),,drop = F]
-    Ur <- apply(Zred, 2, faster_rank)
+    # Ub <- apply(rbind(Z, Zred), 2, faster_rank)[-(1: nrow(Z)),,drop = F]
+    Ub <- colRanks(rbind(Z, Zred), preserveShape = TRUE)[-(1:nrow(Z)),,drop = F]
+    # Ur <- apply(Zred, 2, faster_rank)
+    Ur <- colRanks(Zred, preserveShape = TRUE)
     U2 <- Ub - Ur
     
     CKS <- getKS_cpp(U2, Nadir = Nadir, Shadow = Shadow)
     return(list(CKS = Zred[CKS,, drop = FALSE], id = CKS))
   }else{
-    U <- apply(Z, 2, faster_rank)
+    # U <- apply(Z, 2, faster_rank)
+    U <- colRanks(Z, preserveShape = TRUE)
     CKS <- getKS_cpp(U, Nadir = Nadir, Shadow = Shadow)
     return(list(CKS = Z[CKS,, drop = FALSE], id = CKS))
   }
