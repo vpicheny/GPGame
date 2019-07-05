@@ -403,14 +403,14 @@ solve_game <- function(
     ##################################################################
     if (ii > 1 && integcontrol$renew) {
       all_simPoints <- unique(rbind(all_simPoints, as.matrix(my.integ.pts)))
-      print(str(all_simPoints))
+      # print(str(all_simPoints))
       include.obs <- equilibrium %in% c("KSE", "CKSE")
       res <- generate_integ_pts(n.s=n.s, d=d, nobj=nobj, x.to.obj=x.to.obj, equilibrium=equilibrium,
                                 gridtype=gridtype, lb = lb, ub = ub, include.obs=include.obs, model=model, 
                                 init_set=init_set, include_set=all_simPoints, seed=ii)
       integcontrol$integ.pts <- integ.pts <- res$integ.pts
       integcontrol$expanded.indices <- expanded.indices <- res$expanded.indices
-      print(str(integcontrol$integ.pts))
+      # print(str(integcontrol$integ.pts))
     }
     ##################################################################
     # MODELS UPDATE
@@ -670,8 +670,8 @@ solve_game <- function(
                              equilibrium=equilibrium, nsamp=filtercontrol$nsamp, Nadir=Nadir, Shadow=Shadow, target=calibcontrol$target)$I
       }
     }
-    print("J")
-    print(str(J))
+    # print("J")
+    # print(str(J))
     ## Remove already evaluated designs from candidates
     if((ii > 1) && (ii<(n.ite+1))){
       my.pred.s <- my.pred[[1]]$sd[J]
