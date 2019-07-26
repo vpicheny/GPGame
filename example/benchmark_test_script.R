@@ -157,11 +157,11 @@ if (equilibrium == "KS") {
     save(list = "res", file=paste0(exp_name, "KSE_run_", ii, ".RData"))
   } 
 } else {
-  n.samp <- 5e3 #sampled points for Oakley-style interpolation of simulations
+  n.samp <- 1e4 #sampled points for Oakley-style interpolation of simulations
   integcontrol <- c(integcontrol, list(kweights = TRUE, nsamp = n.samp))
   
   if (compute_actual) {
-    CKS_act <- getEquilibrium(pf, equilibrium = "CKSE", nobj = nobj)
+    CKS_act <- getEquilibrium(fun.grid, equilibrium = "CKSE", nobj = nobj)
     
     save(list = c("ntests", "n.init", "Shadow", "Nadir", "pf", "fun.grid", "integcontrol", "CKS_act"),
          file=paste0(exp_name, "config_and_solution.RData"))
