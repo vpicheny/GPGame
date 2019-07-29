@@ -269,6 +269,9 @@ solve_game <- function(
   ncandPoints <- switch(1+is.null(filtercontrol$ncandPoints), filtercontrol$ncandPoints, 200)
   filtercontrol$nsamp <- switch(1+is.null(filtercontrol$nsamp), filtercontrol$nsamp, max(20, 5* nobj))
   
+  # Temporary warning: Check renew is possible
+  if(integcontrol$renew && all(filtercontrol$filter == "none")) cat("Renew does not work yet with no filters. \n")
+  
   if (equilibrium %in% c("KSE", "CKSE") && "Pnash" %in% filter) {
     cat("Pnash filter only available for NE; switching to PND \n")
     filter[which(filter=="Pnash")] <- 'PND'
