@@ -412,23 +412,39 @@ plot_bundle <- function(observations, Nadir, Shadow, n.init, Eq.poff, Eq.design,
 
 #------------------------------------------------
 # Convergence plots
-convergence_plots <- function(models, solution, Nadir=NULL, Shadow=NULL, title=NULL) {
+convergence_plots <- function(models, solution, Nadir=NULL, Shadow=NULL, title=NULL,
+                              observations_ref=NULL, copula=FALSE, dist_ratio=TRUE) {
   n_runs <- length(models)
   n_ite <- models[[1]][[1]]@n
   
+  # results stores all the minratios, results2 the cumulative min of the minratios
   results <- results2 <- matrix(NA, n_runs, n_ite)
   
+  # Compute first the minratio at the solution (if N/S are provided)
   if (!is.null(Nadir)) ratio_sol <- min((solution - Nadir) / (Shadow - Nadir))
   
   for(i in 1:n_runs){
+    # model is a list, models is a list of lists
     model <- models[[i]]
     observations <- Reduce(cbind, lapply(model, slot, "y"))
-    if (is.null(Nadir)) {
+    
+    # if CKS, transform observations
+    if (copula) {
+      observations <- convert_to_ranks(observations, observations_ref)
+      Nadir <- rep(1, ncol(observations))
+      Shadow <- rep(0, ncol(observations))
+      ratio_sol <- min((convert_to_ranks(solutions, observations_ref) - Nadir) / (Shadow - Nadir))
+    }
+    
+    if (!dist_ratio) {
+      # If dist_ratio=FALSE: convergence is calculated using the L2 norm
       results[i,] <- as.matrix(dist(rbind(solution, observations)))[2:(model[[1]]@n+1),1]
     } else {
+      # Regular case: compute the distance to solution in terms of minratio
       ratios <- sweep(sweep(observations, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
       results[i,] <- ratio_sol - apply(ratios, 1, min)
     }
+    # results2 for the convergence plots
     results2[i,] <- cummin(results[i,])
   }
   require(ggplot2)
@@ -439,7 +455,7 @@ convergence_plots <- function(models, solution, Nadir=NULL, Shadow=NULL, title=N
   df <- melt(df ,  id.vars = 'time', variable.name = 'run')
   
   df2 <- data.frame(t(results2))
-  df2$time = 1:n_ite
+  df2$time = 1:n_ite  # to reduce the curves to anything less that n_ite if wanted
   df2 <- melt(df2,  id.vars = 'time', variable.name = 'run')
   
   # p1 <- ggplot(df, aes(time, value)) + geom_line(aes(colour = run))
