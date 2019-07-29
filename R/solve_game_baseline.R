@@ -54,8 +54,8 @@ solve_game_baseline <- function(
     if (is.null(calibcontrol$offset)) calibcontrol$offset <- 0
   }
   
-  if (trace>0) cat("--------------------------\n Starting", equilibrium, "\n",
-                   "among (", n.s, ") strategies \n --------------------------\n " )
+  if (trace>0) cat("--------------------------\n", " Starting", equilibrium, "\n",
+                   " among (", n.s, ") strategies \n", "--------------------------\n", sep = "")
   
   ####################################################################################################
   #### INITIALIZE VARIABLES AND MODELS ###############################################################
