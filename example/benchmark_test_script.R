@@ -9,9 +9,9 @@ library(matrixStats)
 set.seed(42)
 
 testfun <- "hartman"  # "hartman" "DTLZ2"
-config <- "S" # "S", "M", "L", "XL", "baseline", "RS"
+config <- "M" # "S", "M", "L", "XL", "baseline", "RS"
 pb_type <- "discrete" # "discrete", "continuous"
-equilibrium <- "KS" #"KS", "CKS"
+equilibrium <- "CKS" #"KS", "CKS"
 compute_actual <- FALSE
 
 if (testfun == "DTLZ2"){
@@ -73,7 +73,7 @@ n.s.large <- 1e7
 
 # exp_name <- paste0(directory, "config_", config_number, "_")
 
-ncores <-  4 #detectCores()
+ncores <-  6 #detectCores()
 
 formals(fun)$nobj <- nobj
 
