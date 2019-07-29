@@ -433,7 +433,7 @@ convergence_plots <- function(models, solution, Nadir=NULL, Shadow=NULL, title=N
       observations <- convert_to_ranks(observations, observations_ref)
       Nadir <- rep(1, ncol(observations))
       Shadow <- rep(0, ncol(observations))
-      ratio_sol <- min((convert_to_ranks(solutions, observations_ref) - Nadir) / (Shadow - Nadir))
+      ratio_sol <- min((convert_to_ranks(solution, observations_ref) - Nadir) / (Shadow - Nadir))
     }
     
     if (!dist_ratio) {
