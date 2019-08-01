@@ -172,9 +172,10 @@ for (id1 in 1:5){
     ratio_KS_12 <- min(((Nadir - KSeq)/(Nadir - Shadow))[c(id1, id2)])
 
     plot(ratio_all, ylim = c(0,1), pch = 3, col = "black", ylab = "ratio", xlab = "Index of 2objs Pareto optimal solution",
-         main = substitute(paste("PF (", f[a], ",", f[b], ")",
-                      ' diff KS/PF 6objs:', signif(max(ratio_all) - ratio_KS, 3),
-                      ' diff KS/PF 2objs:', signif(max(ratio_12) - ratio_KS_12, 3)), list(a = id1, b = id2)))
+         main = substitute(paste("PF (", f[a], ",", f[b], "),",
+                      ' diff KS/PF 6objs:', c,
+                      ' diff KS/PF 2objs:', d), 
+                      list(a = id1, b = id2, c = signif(max(ratio_all) - ratio_KS, 3), d = signif(max(ratio_12) - ratio_KS_12, 3))))
     abline(h = ratio_KS, col = 'red', lty = 2)
     
         
