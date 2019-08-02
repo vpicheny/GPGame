@@ -11,18 +11,21 @@ source('example/plot_utils.R')
 
 testfun <- "DTLZ2" # "hartman" "DTLZ2"
 # config <- "L" # "S", "M", "L", "XL"
-pb_type <- "continuous" # "discrete", "continuous"
-equilibrium <- "KS" #"KS", "CKS"
+pb_type <- "discrete" # "discrete", "continuous"
+equilibrium <- "CKSE" #"KSE", "CKSE"
 ratios <- TRUE
+copula <- TRUE
 
 config_number1 <-  paste0("S", "_", "discrete")
-config_number2 <-  paste0("L", "_", "discrete")
-config_number3 <-  paste0("baseline", "_", "discrete")
-config_number4 <-  paste0("RS", "_", "discrete")
-config_number5 <-  paste0("S", "_", "continuous")
-config_number6 <-  paste0("L", "_", "continuous")
-config_number7 <-  paste0("baseline", "_", "continuous")
-config_number8 <-  paste0("RS", "_", "discrete")
+config_number2 <-  paste0("M", "_", "discrete")
+config_number3 <-  paste0("L", "_", "discrete")
+config_number4 <- NULL
+# config_number3 <-  paste0("baseline", "_", "discrete")
+# config_number4 <-  paste0("RS", "_", "discrete")
+# config_number5 <-  paste0("S", "_", "continuous")
+# config_number6 <-  paste0("L", "_", "continuous")
+# config_number7 <-  paste0("baseline", "_", "continuous")
+# config_number8 <-  paste0("RS", "_", "discrete")
 
 # config_number <- c(config_number1, config_number2, config_number4, config_number5)
 # config_number <- c(config_number1, config_number2, config_number3, config_number4, 
@@ -43,22 +46,23 @@ for (i in 1:length(config_number)) {
   
   if (i %in% c(1, 5)) load(paste0(exp_name, "config_and_solution.RData"))
   
-  ntests = 10
+  ntests = 5
   list_of_model <- vector("list", ntests) 
   
   for (ii in 1:ntests) {
-    load(paste0(exp_name, "KSE_run_", ii, ".RData"))
+    load(paste0(exp_name, equilibrium, "_run_", ii, ".RData"))
     list_of_model[[ii]] <- res$model
   }
-  solution <- KS_act
-  print(KS_act)
+  if(equilibrium == "KSE") solution <- KS_act else solution <- CKS_act
+  print(solution)
   
   if (i == 8) exp_name <- paste0("RS", "_", "continuous")
   
   if (ratios) {
-    perf <- convergence_plots(list_of_model, solution, Nadir, Shadow, title=config_number[i])
+    perf <- convergence_plots(models = list_of_model, solution = solution, Nadir = Nadir, Shadow = Shadow, title=config_number[i],
+                              observations_ref = fun.grid, copula = copula)
   } else {
-    perf <- convergence_plots(list_of_model, solution, title=config_number[i])
+    perf <- convergence_plots(models = list_of_model, solution = solution, title=config_number[i], copula = copula)
   }
  
   average_perf <- rbind(average_perf, apply(perf$cummin, 2, mean))
@@ -76,7 +80,7 @@ t_max <- ncol(myperf)
 # t_max <- 42
 
 # config_number[8] <- paste0("RS", "_", "continuous")
-config_number <- c("S", "L", "base", "RS")
+# config_number <- c("S", "L", "base", "RS")
 df <- data.frame(t(myperf[,1:t_max, drop=FALSE]))
 df$time = 1:t_max
 names(df) <- c(config_number, "time")

@@ -1,3 +1,5 @@
+#' @noRd
+#' @export
 solve_game_baseline <- function(
   fun, ..., equilibrium="NE", crit="sur", model=NULL, n.init=NULL, n.ite, d, nobj, x.to.obj=NULL, noise.var = NULL,
   Nadir=NULL, Shadow=NULL, integcontrol=NULL, simucontrol=NULL, filtercontrol=NULL, kmcontrol=NULL, returncontrol=NULL,
@@ -52,8 +54,8 @@ solve_game_baseline <- function(
     if (is.null(calibcontrol$offset)) calibcontrol$offset <- 0
   }
   
-  if (trace>0) cat("--------------------------\n Starting", equilibrium, "\n",
-                   "among (", n.s, ") strategies \n --------------------------\n " )
+  if (trace>0) cat("--------------------------\n", " Starting", equilibrium, "\n",
+                   " among (", n.s, ") strategies \n", "--------------------------\n", sep = "")
   
   ####################################################################################################
   #### INITIALIZE VARIABLES AND MODELS ###############################################################
@@ -112,8 +114,12 @@ solve_game_baseline <- function(
   # J is the individual objective to consider at time ii (0 means all => equilibrium)
   J <- rep(c(1, 1:nobj, 1:nobj), ceiling((n.ite+1) / (2*nobj-1)))
   
-  # Task is either 1 (shadow), 2 (nadir), 0 (equilibrium)
-  task <- rep(c(0, rep(1, nobj), rep(2, nobj)), ceiling((n.ite+1) / (2*nobj-1)))
+  # Task is either 0 (equilibrium), 1 (shadow), 2 (nadir), or 3 (variance)
+  if (equilibrium == "KSE") {
+    task <- rep(c(0, rep(1, nobj), rep(2, nobj)), ceiling((n.ite+1) / (2*nobj-1)))
+  } else {
+    task <- rep(c(0, rep(3, nobj), rep(3, nobj)), ceiling((n.ite+1) / (2*nobj-1)))
+  }
   
   ####################################################################################################
   #### MAIN LOOP STARTS HERE #########################################################################
@@ -174,10 +180,16 @@ solve_game_baseline <- function(
     jj <- J[ii]
     get_shadow <- task[ii] == 1
     get_nadir <- task[ii] == 2
+    max_predvar <- task[ii] == 3
     
     discard <- which(pred[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
     
-    if (get_shadow) {
+    if (max_predvar) {
+      ################################################################
+      # Maximise prediction variance
+      i <- which.max(pred[[jj]]$sd)
+      
+    } else if (get_shadow) {
       ################################################################
       # Search for Shadow
       if (trace>1) cat("Looking for individual minimum of objective: ", jj, "\n")
@@ -199,9 +211,9 @@ solve_game_baseline <- function(
       test[discard] <- NA
       i <- which.max(test)
       
+    } else if (get_nadir) {
       ################################################################
       # Search for Nadir
-    } else if (get_nadir) {
       if (trace>1) cat("Looking for nadir of objective: ", jj, "\n")
       PFobs <- nonDom(Reduce(cbind, lapply(model, slot, "y")))
       PNDom <- prob.of.non.domination(model=model, integration.points=integ.pts, predictions=pred, target=calibcontrol$target)
