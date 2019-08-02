@@ -30,7 +30,7 @@ if (testfun == "DTLZ2"){
   dim <- 5
   nobj <- 4
   n.init <- 10
-  n.ite <- 2
+  n.ite <- 60
 } else {
   directory <- "./Test_results/hartman/" # "~/Code/GPGame/example/Test_results/hartman/"
   fun <- function(x){
@@ -170,12 +170,25 @@ if (equilibrium == "KS") {
   CKS_mat <- NULL
   
   for(ii in 1:ntests){
-    # Run solver with 50 initial points, 50 iterations
-    res <- solve_game(fun, equilibrium = "CKSE", crit = "sur", n.init=n.init, n.ite=n.ite,
-                      d = dim, nobj=nobj, x.to.obj = NULL,
-                      integcontrol=integcontrol, simucontrol = simucontrol,
-                      filtercontrol=filtercontrol, kmcontrol=kmcontrol,
-                      ncores = ncores, trace=3, seed=ii, freq.exploit=5)
+    if (config == "baseline") {
+      res <- solve_game_baseline(fun, equilibrium = "CKSE", crit = "sur", n.init=n.init, n.ite=n.ite,
+                                 d = dim, nobj=nobj, x.to.obj = NULL,
+                                 integcontrol=integcontrol, simucontrol = simucontrol,
+                                 filtercontrol=filtercontrol, kmcontrol=kmcontrol,
+                                 ncores = ncores, trace=2, seed=ii, freq.exploit=5)
+    } else if (config == "RS") {
+      res <- solve_game_baseline(fun, equilibrium = "CKSE", crit = "sur", n.init=n.init, n.ite=n.ite,
+                                 d = dim, nobj=nobj, x.to.obj = NULL,
+                                 integcontrol=integcontrol, simucontrol = simucontrol,
+                                 filtercontrol=filtercontrol, kmcontrol=kmcontrol,
+                                 ncores = ncores, trace=2, seed=ii, baseline_type="RS")
+    } else{
+      res <- solve_game(fun, equilibrium = "CKSE", crit = "sur", n.init=n.init, n.ite=n.ite,
+                        d = dim, nobj=nobj, x.to.obj = NULL,
+                        integcontrol=integcontrol, simucontrol = simucontrol,
+                        filtercontrol=filtercontrol, kmcontrol=kmcontrol,
+                        ncores = ncores, trace=3, seed=ii, freq.exploit=5)
+    }
     
     CKS_mat <- rbind(CKS_mat, res$Eq.poff)
     save(list = "res", file=paste0(exp_name, "CKSE_run_", ii, ".RData"))
