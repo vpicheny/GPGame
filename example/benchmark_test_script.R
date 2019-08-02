@@ -18,8 +18,10 @@ if (length(args)==0) {
   config <- args[1] # "S" or "M" or "L"
 }
 
+config <- "SMS"
+
 testfun <- "DTLZ2"  # "hartman" "DTLZ2"
-# config <- "S" # "S", "M", "L", "XL", "baseline", "RS"
+# config <- "S" # "S", "M", "L", "XL", "baseline", "RS", "SMS"
 pb_type <- "discrete" # "discrete", "continuous"
 equilibrium <- "CKS" #"KS", "CKS"
 compute_actual <- TRUE
@@ -146,7 +148,12 @@ if (equilibrium == "KS") {
                                  integcontrol=integcontrol, simucontrol = simucontrol,
                                  filtercontrol=filtercontrol, kmcontrol=kmcontrol,
                                  ncores = ncores, trace=2, seed=ii, baseline_type="RS")
-    } else {
+    } else if(config == "SMS"){
+      initialDoE <- DiceDesign::lhsDesign(n.init, dim, seed = ii)$design
+      res <- easyGParetoptim(fn = fun, budget = n.ite + n.init, lower = rep(0, dim), upper = rep(1, dim), par = initialDoE)
+      res$Eq.poff <- getEquilibrium(Z = res$value, nobj = nobj, equilibrium = "KSE", Nadir = Nadir, Shadow = Shadow)
+
+    }else{
       res <- solve_game(fun, equilibrium = "KSE", crit = "sur", n.init=n.init, n.ite=n.ite,
                         d = dim, nobj=nobj, x.to.obj = NULL,
                         integcontrol=integcontrol, simucontrol = simucontrol,

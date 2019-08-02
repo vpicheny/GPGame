@@ -157,7 +157,8 @@ for (id1 in 1:5){
 par(mfrow = c(1,1))
 
 ## Putting things on the same graphs
-par(mfrow = c(3, 5))
+if(save) pdf("InterestMaO.pdf", width = 12, height = 12)
+par(mfrow = c(4, 4))
 for (id1 in 1:5){
   for(id2 in (id1+1):6){
     
@@ -166,28 +167,34 @@ for (id1 in 1:5){
     
     ratio_all <- apply(ratios, 1, min)
     ratio_KS <- min((Nadir - KSeq)/(Nadir - Shadow))
-
+    
     ratio_12 <- (matrix(Nadir, nrow = length(Pset_12), ncol = 6, byrow = T) - Yall[Pset_12,]) %*% diag(1/(Nadir - Shadow))
     ratio_12 <- apply(ratio_12[,c(id1, id2)], 1, min)
     ratio_KS_12 <- min(((Nadir - KSeq)/(Nadir - Shadow))[c(id1, id2)])
-
-    plot(ratio_all, ylim = c(0,1), pch = 3, col = "black", ylab = "ratio", xlab = "Index of 2objs Pareto optimal solution",
-         main = substitute(paste("PF (", f[a], ",", f[b], "),",
-                      ' diff KS/PF 6objs:', c,
-                      ' diff KS/PF 2objs:', d), 
-                      list(a = id1, b = id2, c = signif(max(ratio_all) - ratio_KS, 3), d = signif(max(ratio_12) - ratio_KS_12, 3))))
+    
+    plot(ratio_all, ylim = c(0,1), pch = 3, col = "black", ylab = "ratio", xlab = "Index of solution",
+         main = substitute(paste("PF (", f[a], ",", f[b], ")"
+                                 #, ', diff KS/PF 6objs:', c,
+                                 # ' diff KS/PF 2objs:', d
+         ), 
+         list(a = id1, b = id2
+              #, c = signif(max(ratio_all) - ratio_KS, 3), d = signif(max(ratio_12) - ratio_KS_12, 3)
+         )))
     abline(h = ratio_KS, col = 'red', lty = 2)
     
-        
+    
     points(ratio_12, col = "green", pch = 1) #main = paste('2 obj results, PF obj_1:', id1, 'obj_2:', id2, ' diff:', signif(max(ratio_12) - ratio_KS_12, 3)))
     abline(h = ratio_KS_12, col = 'blue', lty = 3)
     
-    legend("bottom", col = c(1, 3, 2, 4), pch = c(3, 1, NA, NA), lty = c(NA, NA, 2, 3), 
-           legend = c("6 objectives", "2 objectives", "KS 6 objectives", "KS 2 objectives"))
+    
   }
 }
+plot(NA, NA, ylab = "", xlab = "")
+legend("bottom", col = c(1, 3, 2, 4), pch = c(3, 1, NA, NA), lty = c(NA, NA, 2, 3), 
+       legend = c("6 objectives", "2 objectives", "KS 6 objectives", "KS 2 objectives"))
 par(mfrow = c(1,1))
+if(save) dev.off()
 
-
+if(save) pdf("BoxplotMaO.pdf", width = 6, height = 6)
 boxplot(-diff_all, diff_12, names = c("-Diff on 6 objs", "Diff on 2 objs"))
-
+if(save) dev.off()
