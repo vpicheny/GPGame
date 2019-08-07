@@ -150,7 +150,8 @@ if (equilibrium == "KS") {
                                  ncores = ncores, trace=2, seed=ii, baseline_type="RS")
     } else if(config == "SMS"){
       initialDoE <- DiceDesign::lhsDesign(n.init, dim, seed = ii)$design
-      res <- easyGParetoptim(fn = fun, budget = n.ite + n.init, lower = rep(0, dim), upper = rep(1, dim), par = initialDoE)
+      res <- easyGParetoptim(fn = fun, budget = n.ite + n.init, lower = rep(0, dim), upper = rep(1, dim), par = initialDoE,
+                             control = list(candidate.points = integcontrol$integ.pts))
       res$Eq.poff <- getEquilibrium(Z = res$value, nobj = nobj, equilibrium = "KSE", Nadir = Nadir, Shadow = Shadow)
 
     }else{
