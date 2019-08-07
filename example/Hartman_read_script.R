@@ -9,9 +9,9 @@ require(reshape2)
 # setwd("~/Code/GPGame")
 source('example/plot_utils.R')
 
-testfun <- "hartman" # "hartman" "DTLZ2"
+testfun <-  "hartman" # "hartman" "DTLZ2"
 # config <- "L" # "S", "M", "L", "XL"
-pb_type <- "discrete" # "discrete", "continuous"
+pb_type <- "continuous" # "discrete", "continuous"
 equilibrium <- "KSE" #"KSE", "CKSE"
 ratios <- TRUE
 copula <- FALSE
@@ -19,8 +19,8 @@ copula <- FALSE
 config_number1 <-  paste0("S", "_", "discrete")
 # config_number2 <-  paste0("M", "_", "discrete")
 config_number3 <-  paste0("L", "_", "discrete")
-config_number4 <-  paste0("RS", "_", "discrete")
-config_number5 <-  paste0("baseline", "_", "discrete")
+config_number4 <-  paste0("baseline", "_", "discrete")
+config_number5 <-  paste0("RS", "_", "discrete")
 config_number6 <-  paste0("SMS", "_", "discrete")
 
 config_number7 <-  paste0("S", "_", "continuous")
@@ -103,9 +103,9 @@ col= gg_color_hue(6)
 # config_number[8] <- paste0("RS", "_", "continuous")
 # config_number <- c("S", "L", "base", "RS")
 if (pb_type == "continuous") {
-  config_number <- c("SUR S", "SUR L", "Baseline")
+  config_number <- c("SUR coarse", "SUR fine", "Baseline")
 } else {
-  config_number <- c("SUR S", "SUR L", "Baseline", "Random", "Hypervolume")
+  config_number <- c("SUR coarse", "SUR fine",  "Baseline", "Random", "Hypervolume")
 }
 cols = col[1:length(config_number)]
 
