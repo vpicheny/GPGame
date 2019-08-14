@@ -40,10 +40,10 @@ nonDom <- function(points, ref = NULL, return.idx = FALSE){
   if(is.null(ref)){
     ordrs <- order(points[,1])
     if(return.idx) return(ordrs[nonDomInd_cpp(points[ordrs, , drop = FALSE])])
-    return(points[ordrs[nonDomInd_cpp(points[ordrs, , drop = FALSE])],])
+    return(points[ordrs[nonDomInd_cpp(points[ordrs, , drop = FALSE])],, drop = FALSE])
   }
 
   res <- nonDomSet(points, ref)
   if(return.idx) return(which(res))
-  return(points[res, ,drop = FALSE])
+  return(points[res, , drop = FALSE])
 }
