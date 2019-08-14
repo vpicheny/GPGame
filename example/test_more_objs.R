@@ -75,7 +75,7 @@ for(i in 1:3){
   for(j in (i+1):4){
     for(k in (j+1):5){
       for(l in (k+1):6){
-        sol4d <- nsga2(fun3, 6, 4, lower.bounds = rep(0, 6), upper.bounds = rep(1,6), popsize = 400,
+        sol4d <- nsga2(fun4, 6, 4, lower.bounds = rep(0, 6), upper.bounds = rep(1,6), popsize = 400,
                        group1 = i, group2 = j, group3 = k, group4 = l)
         Yall <- rbind(Yall, t(apply(sol4d$par, 1, fun)))
       }
@@ -95,7 +95,7 @@ for(i in 1:2){
     for(k in (j+1):4){
       for(l in (k+1):5){
         for(m in (l+1):6){
-          sol5d <- nsga2(fun3, 6, 5, lower.bounds = rep(0, 6), upper.bounds = rep(1,6), popsize = 500,
+          sol5d <- nsga2(fun5, 6, 5, lower.bounds = rep(0, 6), upper.bounds = rep(1,6), popsize = 500,
                          group1 = i, group2 = j, group3 = k, group4 = l)
           Yall <- rbind(Yall, t(apply(sol5d$par, 1, fun)))
         }
@@ -170,7 +170,6 @@ for (id1 in 1:5){
     
     ratio_all <- apply(ratios, 1, min)
     ratio_KS <- min((Nadir - KSeq)/(Nadir - Shadow))
-    
     int_all <- c(int_all, mean(ratio_all - ratio_KS))
     
     
@@ -197,7 +196,10 @@ for (id1 in 1:5){
     
     points(ratio_12, col = "green", pch = 1) #main = paste('2 obj results, PF obj_1:', id1, 'obj_2:', id2, ' diff:', signif(max(ratio_12) - ratio_KS_12, 3)))
     # abline(h = ratio_KS_12, col = 'blue', lty = 3)
-    
+    arrows(x0 = which.max(ratio_all), x1 = which.max(ratio_all), y0 = ratio_KS, y1 = max(ratio_all),
+           lty = 1, lwd = 2, code = 3, length = 0.05)
+    arrows(x0 = which.max(ratio_12), x1 = which.max(ratio_12), y0 = ratio_KS, y1 = max(ratio_12),
+           lty = 3, lwd = 2, code = 3, length = 0.05, col = "green")
   }
 }
 plot(NA, NA, ylab = "", xlab = "")
