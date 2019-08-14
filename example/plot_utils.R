@@ -322,19 +322,28 @@ plot_centrality <- function(observations, observations_ref=NULL, Nadir=NULL, Sha
 # Different colors for dominated observations
 # Equilibrium found in red
 # Actual (if provided) in green
-plot_pairs <- function(observations, Eq.poff, n.init, Eq.poff.act=NULL){
+plot_pairs <- function(observations, Eq.poff, n.init, Nadir=NULL, Shadow=NULL){
   if (is.null(nrow(Eq.poff))) Eq.poff <- matrix(Eq.poff, nrow=1)
   nobs <- nrow(observations)
+  
+  objnames2 <- c("Heat_W","ECS_W","Cook_W","Other_W",
+                 "Winter_T","T_cook","T_relax",
+                 "T_sleep","T_out")
+  # objnames2 <- c("Heat_W","ECS_W","Cook_W","Other_W",
+  #                "Winter_T","T_cook","T_relax",
+  #                "T_sleep")
+  colnames(observations) <- objnames2
+  
   n.ite <- nobs - n.init
   ind <- nonDom(observations, return.idx = TRUE)
   colpf <- rep("red", nobs)
   colpf[ind] <- "blue"
   
-  colpf <- c(colpf, rep("green", nrow(Eq.poff)))
-  pch <- c(rep('.', n.init), rep('.', n.ite), rep('.', nrow(Eq.poff)))
-  cex <- c(rep(4, nobs), 8)
+  colpf <- c(colpf, rep("green", nrow(Eq.poff)), "violet", "violet")
+  pch <- c(rep('.', n.init), rep('.', n.ite), rep('.', nrow(Eq.poff)+2))
+  cex <- c(rep(4, nobs), 10, 10, 10)
   
-  pairs(rbind(observations, Eq.poff), pch=pch, cex=cex, col=colpf, upper.panel=NULL)
+  pairs(rbind(observations, Eq.poff, Nadir, Shadow), pch=pch, cex=cex, col=colpf, upper.panel=NULL)
 }
 
 #------------------------------------------------

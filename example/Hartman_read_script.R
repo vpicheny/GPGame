@@ -9,9 +9,9 @@ require(reshape2)
 # setwd("~/Code/GPGame")
 source('example/plot_utils.R')
 
-testfun <-  "hartman" # "hartman" "DTLZ2"
+testfun <- "DTLZ2" # "hartman" "DTLZ2"
 # config <- "L" # "S", "M", "L", "XL"
-pb_type <- "continuous" # "discrete", "continuous"
+pb_type <- "discrete" # "discrete", "continuous"
 equilibrium <- "KSE" #"KSE", "CKSE"
 ratios <- TRUE
 copula <- FALSE
@@ -87,7 +87,7 @@ for (i in 1:length(config_number)) {
   all_perf <- rbind(all_perf, perf$cummin)
 }
 
-ymin <- 1e-3
+ymin <- 5e-3
 myperf <- average_perf
 myperf <- pmax(myperf, ymin)
 min_perf <- pmax(min_perf, ymin)

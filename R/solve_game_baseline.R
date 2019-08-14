@@ -117,8 +117,10 @@ solve_game_baseline <- function(
   # Task is either 0 (equilibrium), 1 (shadow), 2 (nadir), or 3 (variance)
   if (equilibrium == "KSE") {
     task <- rep(c(0, rep(1, nobj), rep(2, nobj)), ceiling((n.ite+1) / (2*nobj-1)))
-  } else {
+  } else if (equilibrium == "CKSE") {
     task <- rep(c(0, rep(3, nobj), rep(3, nobj)), ceiling((n.ite+1) / (2*nobj-1)))
+  } else {
+    task <- rep(4, n.ite+1)
   }
   
   ####################################################################################################
@@ -181,6 +183,7 @@ solve_game_baseline <- function(
     get_shadow <- task[ii] == 1
     get_nadir <- task[ii] == 2
     max_predvar <- task[ii] == 3
+    sms <- task[ii] == 4
     
     discard <- which(pred[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
     
@@ -236,6 +239,33 @@ solve_game_baseline <- function(
       
       ################################################################
       # Search for KS
+    } else if (sms) {
+        paretoFront <- t(nondominated_points(t(observations)))
+        PF_range <- apply(paretoFront, 2, range)
+        refPoint <- matrix(PF_range[2,] + pmax(1, (PF_range[2,] - PF_range[1,]) * 0.2), 1, nobj)
+
+        n.pareto <- nrow(paretoFront)
+        currentHV <- dominated_hypervolume(points=t(paretoFront), ref=refPoint)
+        gain <- -qnorm( 0.5*(0.5^(1/nobj)) )
+
+        predmean <- Reduce(cbind, lapply(pred, function(alist) alist$mean))
+        sigma <- predmean <- Reduce(cbind, lapply(pred, function(alist) alist$sd))
+        potSol <- predmean - gain*sigma
+
+        nondom <- which(nonDomSet(potSol, paretoFront))
+        
+        test <- rep(0, nobs)
+        for (ip in nondom) {
+          # non epsilon-dominated solution
+          subFront <- paretoFront[which(nonDomSet(paretoFront, potSol)),]
+          potFront <- rbind(subFront, potSol)
+          myhv <- dominated_hypervolume(points=t(potFront), ref=refPoint)
+          test[ip]  <- myhv - currentHV
+        }
+        
+        test[discard] <- NA
+        i <- which.max(test)
+        
     } else {
       if (trace>1) cat("Looking for equilibrium \n")
       predmean <- Reduce(cbind, lapply(pred, function(alist) alist$mean))
