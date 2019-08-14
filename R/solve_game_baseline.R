@@ -174,8 +174,24 @@ solve_game_baseline <- function(
     ##################################################################
     # PREDICTION
     ##################################################################
-    pred <- mclapply(model, FUN=predict, newdata = integ.pts, checkNames = FALSE, type = "UK", light.return = TRUE, mc.cores=ncores)
-    
+    if (nrow(integ.pts) < 11e5) {
+      pred <- mclapply(model, FUN=predict, newdata = integ.pts, checkNames = FALSE, type = "UK", light.return = TRUE, mc.cores=ncores)
+      predmean <- Reduce(cbind, lapply(pred, function(alist) alist$mean))
+      predsd <- Reduce(cbind, lapply(pred, function(alist) alist$sd))
+    } else {
+      start <- seq(1, nrow(integ.pts), 2e5)
+      stop <- seq(2e5, nrow(integ.pts), 2e5)
+      if (length(start) > length(stop)) stop <- c(stop, nrow(integ.pts))
+
+      predmean <- predsd <- c()
+      for (b in 1:length(start)) {
+        integ.pts_red <- integ.pts[start[b]:stop[b], ]
+        pred <- mclapply(model, FUN=predict, newdata = integ.pts_red, checkNames = FALSE, type = "UK", light.return = TRUE, mc.cores=ncores)
+        predmean <- rbind(predmean, Reduce(cbind, lapply(pred, function(alist) alist$mean)))
+        predsd <- rbind(predsd, Reduce(cbind, lapply(pred, function(alist) alist$sd)))
+      }
+    }
+
     ##################################################################
     # ACQUISITION
     ##################################################################
@@ -185,12 +201,12 @@ solve_game_baseline <- function(
     max_predvar <- task[ii] == 3
     sms <- task[ii] == 4
     
-    discard <- which(pred[[jj]]$sd/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
+    discard <- which(predsd[,jj]/sqrt(model[[jj]]@covariance@sd2) < 1e-06)
     
     if (max_predvar) {
       ################################################################
       # Maximise prediction variance
-      i <- which.max(pred[[jj]]$sd)
+      i <- which.max(predsd[,jj])
       
     } else if (get_shadow) {
       ################################################################
@@ -198,13 +214,13 @@ solve_game_baseline <- function(
       if (trace>1) cat("Looking for individual minimum of objective: ", jj, "\n")
       if (is.null(calibcontrol$target)) {
         # EI(min) on each objective (to find potential Utopia points)
-        xcr <-  (min(model[[jj]]@y) - pred[[jj]]$mean)/pred[[jj]]$sd
-        test <- (min(model[[jj]]@y) - pred[[jj]]$mean)*pnorm(xcr) + pred[[jj]]$sd * dnorm(xcr)
+        xcr <-  (min(model[[jj]]@y) - predmean[,jj])/predsd[,jj]
+        test <- (min(model[[jj]]@y) - predmean[,jj])*pnorm(xcr) + predsd[,jj] * dnorm(xcr)
       } else {
         # EI(min) on each objective (to find potential Utopia points)
         zmin <- min((model[[jj]]@y - target[jj])^2)
-        mu <- pred[[jj]]$mean - target[jj]
-        sigma   <- pred[[jj]]$sd
+        mu <- predmean[,jj] - target[jj]
+        sigma   <- predsd[,jj]
         a2 <- (sqrt(zmin) - mu)/sigma
         a1 <- (-sqrt(zmin) - mu)/sigma
         da2 <- dnorm(a2);   da1 <- dnorm(a1)
@@ -223,8 +239,8 @@ solve_game_baseline <- function(
       
       if (is.null(calibcontrol$target)) {
         # EI(max) x Pdom on each objective (to find potential Nadir points) unless Nadir is provided
-        xcr <-  -(max(PFobs[,jj]) - pred[[jj]]$mean)/pred[[jj]]$sd
-        test <- (-max(PFobs[,jj]) + pred[[jj]]$mean)*pnorm(xcr) + pred[[jj]]$sd * dnorm(xcr)
+        xcr <-  -(max(PFobs[,jj]) - predmean[,jj])/predsd[,jj]
+        test <- (-max(PFobs[,jj]) + predmean[,jj])*pnorm(xcr) + predsd[,jj] * dnorm(xcr)
       } else {
         zmax <- max(PFobs[,jj])
         b2 <- (sqrt(zmax) - mu)/sigma
@@ -238,31 +254,33 @@ solve_game_baseline <- function(
       i <- which.max(test)
       
       ################################################################
-      # Search for KS
+      # SMS-driven
     } else if (sms) {
+      if (trace>1) cat("Looking for max of SMS criterion", "\n")
         paretoFront <- t(nondominated_points(t(observations)))
         PF_range <- apply(paretoFront, 2, range)
         refPoint <- matrix(PF_range[2,] + pmax(1, (PF_range[2,] - PF_range[1,]) * 0.2), 1, nobj)
 
         n.pareto <- nrow(paretoFront)
-        currentHV <- dominated_hypervolume(points=t(paretoFront), ref=refPoint)
         gain <- -qnorm( 0.5*(0.5^(1/nobj)) )
-
-        predmean <- Reduce(cbind, lapply(pred, function(alist) alist$mean))
-        sigma <- predmean <- Reduce(cbind, lapply(pred, function(alist) alist$sd))
-        potSol <- predmean - gain*sigma
-
-        nondom <- which(nonDomSet(potSol, paretoFront))
+        potSol <- predmean - gain*predsd
         
-        test <- rep(0, nobs)
-        for (ip in nondom) {
-          # non epsilon-dominated solution
-          subFront <- paretoFront[which(nonDomSet(paretoFront, potSol)),]
-          potFront <- rbind(subFront, potSol)
-          myhv <- dominated_hypervolume(points=t(potFront), ref=refPoint)
-          test[ip]  <- myhv - currentHV
+        nondom <- which(nonDomSet(potSol, paretoFront))
+        Xnd <- potSol[nondom,,drop=FALSE]
+        
+        get_hypervolume_reduction <- function(newpoint, paretoFront, refPoint) {
+          subFront <- paretoFront[which(nonDomSet(paretoFront, matrix(newpoint, nrow=1))),]
+          potFront <- rbind(subFront, newpoint)
+          return(dominated_hypervolume(points=t(potFront), ref=refPoint))
         }
         
+        Xnd_l <- lapply(seq_len(nrow(Xnd)), function(cc) Xnd[cc,])
+        testnd <- unlist(mclapply(Xnd_l, FUN=get_hypervolume_reduction, paretoFront, refPoint, mc.cores=ncores))
+        
+        # If mclapply blows up
+        # testnd <- unlist(lapply(Xnd_l, FUN=get_hypervolume_reduction, paretoFront, refPoint))
+        test <- rep(0, nrow(integ.pts))
+        test[nondom] <- testnd
         test[discard] <- NA
         i <- which.max(test)
         
