@@ -114,13 +114,14 @@ solve_game_baseline <- function(
   # J is the individual objective to consider at time ii (0 means all => equilibrium)
   J <- rep(c(1, 1:nobj, 1:nobj), ceiling((n.ite+1) / (2*nobj-1)))
   
-  # Task is either 0 (equilibrium), 1 (shadow), 2 (nadir), or 3 (variance)
+  # Task is either 0 (equilibrium), 1 (shadow), 2 (nadir), or 3 (variance) or 4 (SMS)
   if (equilibrium == "KSE") {
     task <- rep(c(0, rep(1, nobj), rep(2, nobj)), ceiling((n.ite+1) / (2*nobj-1)))
   } else if (equilibrium == "CKSE") {
     task <- rep(c(0, rep(3, nobj), rep(3, nobj)), ceiling((n.ite+1) / (2*nobj-1)))
   } else {
     task <- rep(4, n.ite+1)
+    equilibrium <- "KSE" # Could be improved, e.g., by putting sms in baseline_type
   }
   
   ####################################################################################################
