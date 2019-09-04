@@ -87,10 +87,11 @@ for (i in 1:length(config_number)) {
   all_perf <- rbind(all_perf, perf$cummin)
 }
 
-ymin <- 5e-3
+ymin <- 5e-3 # 1e-4 for CKS
 myperf <- average_perf
 myperf <- pmax(myperf, ymin)
 min_perf <- pmax(min_perf, ymin)
+max_perf <- pmax(max_perf, ymin)
 t_max <- ncol(myperf)
 # t_max <- 42
 
