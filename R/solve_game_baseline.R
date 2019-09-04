@@ -219,8 +219,8 @@ solve_game_baseline <- function(
         test <- (min(model[[jj]]@y) - predmean[,jj])*pnorm(xcr) + predsd[,jj] * dnorm(xcr)
       } else {
         # EI(min) on each objective (to find potential Utopia points)
-        zmin <- min((model[[jj]]@y - target[jj])^2)
-        mu <- predmean[,jj] - target[jj]
+        zmin <- min((model[[jj]]@y - calibcontrol$target[jj])^2)
+        mu <- predmean[,jj] - calibcontrol$target[jj]
         sigma   <- predsd[,jj]
         a2 <- (sqrt(zmin) - mu)/sigma
         a1 <- (-sqrt(zmin) - mu)/sigma
@@ -258,7 +258,7 @@ solve_game_baseline <- function(
       # SMS-driven
     } else if (sms) {
       if (trace>1) cat("Looking for max of SMS criterion", "\n")
-        paretoFront <- t(nondominated_points(t(observations)))
+        paretoFront <- nonDom(observations)
         PF_range <- apply(paretoFront, 2, range)
         refPoint <- matrix(PF_range[2,] + pmax(1, (PF_range[2,] - PF_range[1,]) * 0.2), 1, nobj)
 
@@ -314,7 +314,7 @@ solve_game_baseline <- function(
       cat("Unable to compute objective function at iteration ", i, "- optimization stopped \n")
       cat("Problem occured for the design: ", xnew, "\n")
       cat("Last model and problematic design (xnew) returned \n")
-      return(list(model=model, predEq=predEq, integcontrol=integcontrol, xnew=xnew))
+      return(list(model=model, integcontrol=integcontrol, xnew=xnew))
     }
     
     if (!is.null(noise.var)) {
