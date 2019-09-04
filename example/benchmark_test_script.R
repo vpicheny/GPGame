@@ -23,11 +23,11 @@ config <- "SMS"
 testfun <- "DTLZ2"  # "hartman" "DTLZ2"
 # config <- "S" # "S", "M", "L", "XL", "baseline", "RS", "SMS"
 pb_type <- "discrete" # "discrete", "continuous"
-equilibrium <- "CKS" #"KS", "CKS"
-compute_actual <- TRUE
+equilibrium <- "KS" #"KS", "CKS"
+compute_actual <- FALSE
 
 if (testfun == "DTLZ2"){
-  directory <- "./Test_results/dtlz2/" # "~/Code/GPGame/example/Test_results/dtlz2/"
+  directory <- "~/Code/GPGame/example/Test_results/dtlz2bis/"  # "./Test_results/dtlz2/" # "~/Code/GPGame/example/Test_results/dtlz2/"
   fun <- DTLZ2
   dim <- 5
   nobj <- 4
@@ -78,14 +78,14 @@ if (config == "S") {
 config_number <-  paste0(config, "_", pb_type)
 
 ntests <- 10
-n.s <- 2e5
+n.s <- 1e5
 n.s.large <- 1e7
 
 dir.create(file.path(directory), showWarnings = FALSE)
 
 exp_name <- paste0(directory, "config_", config_number, "_")
 
-ncores <-  min(20, detectCores())
+ncores <-  min(7, detectCores())
 
 formals(fun)$nobj <- nobj
 
@@ -141,7 +141,7 @@ if (equilibrium == "KS") {
                                  d = dim, nobj=nobj, x.to.obj = NULL,
                                  integcontrol=integcontrol, simucontrol = simucontrol,
                                  filtercontrol=filtercontrol, kmcontrol=kmcontrol,
-                                 ncores = ncores, trace=2, seed=ii, freq.exploit=5)
+                                 ncores = ncores, trace=2, seed=ii, baseline_type="1d")
     } else if (config == "RS") {
       res <- solve_game_baseline(fun, equilibrium = "KSE", crit = "sur", n.init=n.init, n.ite=n.ite,
                                  d = dim, nobj=nobj, x.to.obj = NULL,
@@ -149,12 +149,19 @@ if (equilibrium == "KS") {
                                  filtercontrol=filtercontrol, kmcontrol=kmcontrol,
                                  ncores = ncores, trace=2, seed=ii, baseline_type="RS")
     } else if(config == "SMS"){
-      initialDoE <- DiceDesign::lhsDesign(n.init, dim, seed = ii)$design
-      res <- easyGParetoptim(fn = fun, budget = n.ite + n.init, lower = rep(0, dim), upper = rep(1, dim), par = initialDoE,
-                             control = list(inneroptim = "discrete", candidate.points = integcontrol$integ.pts), ncores = ncores)
-      res$Eq.poff <- getEquilibrium(Z = res$value, nobj = nobj, equilibrium = "KSE", Nadir = Nadir, Shadow = Shadow)
+      print("starting SMS")
+      res <- solve_game_baseline(fun, equilibrium = "SMS", crit = "sur", n.init=n.init, n.ite=n.ite,
+                                 d = dim, nobj=nobj, x.to.obj = NULL,
+                                 integcontrol=integcontrol, simucontrol = simucontrol,
+                                 filtercontrol=filtercontrol, kmcontrol=kmcontrol,
+                                 ncores = ncores, trace=2, seed=ii)
+      # 
+      # initialDoE <- DiceDesign::lhsDesign(n.init, dim, seed = ii)$design
+      # res <- easyGParetoptim(fn = fun, budget = n.ite + n.init, lower = rep(0, dim), upper = rep(1, dim), par = initialDoE,
+      #                        control = list(inneroptim = "discrete", candidate.points = integcontrol$integ.pts), ncores = ncores)
+      # res$Eq.poff <- getEquilibrium(Z = res$value, nobj = nobj, equilibrium = "KSE", Nadir = Nadir, Shadow = Shadow)
 
-    }else{
+    } else {
       res <- solve_game(fun, equilibrium = "KSE", crit = "sur", n.init=n.init, n.ite=n.ite,
                         d = dim, nobj=nobj, x.to.obj = NULL,
                         integcontrol=integcontrol, simucontrol = simucontrol,
