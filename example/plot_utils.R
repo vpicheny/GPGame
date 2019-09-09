@@ -458,6 +458,7 @@ convergence_plots <- function(models, solution, Nadir=NULL, Shadow=NULL, title=N
   }
   require(ggplot2)
   require(reshape2)
+  require(gridExtra)
 
   df <- data.frame(t(results))
   df$time = 1:n_ite
