@@ -280,7 +280,7 @@ plot_centrality <- function(observations, observations_ref=NULL, Nadir=NULL, Sha
       ratios <- sweep(sweep(observations, 2, Nadir, "-"), 2, Shadow - Nadir, "/")
       dks <- apply(ratios, 1, min)
       DKS <- apply(ratios, 1, max)
-      
+      x <- 1:nrow(ratios)
       plot(x, dks, xlab="Iteration #", ylab="Marginal gain", ylim=range(c(dks, DKS)))
       arrows(x, dks, x, DKS, length=0.05, angle=90, code=3)
     } else {
