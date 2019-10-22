@@ -78,7 +78,7 @@ if (config == "S") {
 config_number <-  paste0(config, "_", pb_type)
 
 ntests <- 10
-n.s <- 1e5
+n.s <- 2e5
 n.s.large <- 1e7
 
 dir.create(file.path(directory), showWarnings = FALSE)

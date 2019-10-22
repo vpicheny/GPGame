@@ -1,8 +1,8 @@
 Package: GPGame
 Type: Package
 Title: Solving Complex Game Problems using Gaussian Processes
-Version: 1.1.3
-Date: 2019-09-04
+Version: 1.2.0
+Date: 2019-10-22
 Author: Victor Picheny, Mickael Binois
 Maintainer: Victor Picheny <victor.picheny@inra.fr>
 Description: Sequential strategies for finding a game equilibrium are proposed in a black-box setting (expensive pay-off evaluations, no derivatives). The algorithm handles noiseless or noisy evaluations. Two acquisition functions are available. Graphical outputs can be generated automatically. 
