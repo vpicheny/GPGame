@@ -4,9 +4,19 @@
 \alias{plotGame}
 \title{Plot equilibrium search result (2-objectives only)}
 \usage{
-plotGame(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE,
-  simus = NULL, integcontrol = NULL, simucontrol = NULL,
-  Nadir = NULL, Shadow = NULL, ncores = 1, calibcontrol = NULL)
+plotGame(
+  res,
+  equilibrium = "NE",
+  add = FALSE,
+  UQ_eq = TRUE,
+  simus = NULL,
+  integcontrol = NULL,
+  simucontrol = NULL,
+  Nadir = NULL,
+  Shadow = NULL,
+  ncores = 1,
+  calibcontrol = NULL
+)
 }
 \arguments{
 \item{res}{list returned by \code{\link[GPGame]{solve_game}}}

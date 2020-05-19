@@ -4,11 +4,26 @@
 \alias{restart_sg}
 \title{Restart existing run}
 \usage{
-restart_sg(results, fun, ..., equilibrium = "NE", crit = "sur", n.ite,
-  x.to.obj = NULL, noise.var = NULL, Nadir = NULL, Shadow = NULL,
-  integcontrol = NULL, simucontrol = NULL, filtercontrol = NULL,
-  kmcontrol = NULL, returncontrol = NULL, ncores = 1, trace = 1,
-  seed = NULL)
+restart_sg(
+  results,
+  fun,
+  ...,
+  equilibrium = "NE",
+  crit = "sur",
+  n.ite,
+  x.to.obj = NULL,
+  noise.var = NULL,
+  Nadir = NULL,
+  Shadow = NULL,
+  integcontrol = NULL,
+  simucontrol = NULL,
+  filtercontrol = NULL,
+  kmcontrol = NULL,
+  returncontrol = NULL,
+  ncores = 1,
+  trace = 1,
+  seed = NULL
+)
 }
 \arguments{
 \item{results}{output of \code{\link[GPGame]{solve_game}} that is to be continued}

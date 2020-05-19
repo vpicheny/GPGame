@@ -4,10 +4,22 @@
 \alias{crit_SUR_Eq}
 \title{SUR criterion for equilibria}
 \usage{
-crit_SUR_Eq(idx, model, integcontrol, Simu, precalc.data = NULL,
-  equilibrium, n.ynew = NULL, cross = FALSE, IS = FALSE,
-  plot = FALSE, kweights = NULL, Nadir = NULL, Shadow = NULL,
-  calibcontrol = NULL)
+crit_SUR_Eq(
+  idx,
+  model,
+  integcontrol,
+  Simu,
+  precalc.data = NULL,
+  equilibrium,
+  n.ynew = NULL,
+  cross = FALSE,
+  IS = FALSE,
+  plot = FALSE,
+  kweights = NULL,
+  Nadir = NULL,
+  Shadow = NULL,
+  calibcontrol = NULL
+)
 }
 \arguments{
 \item{idx}{is the index on the grid of the strategy evaluated}

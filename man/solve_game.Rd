@@ -4,12 +4,31 @@
 \alias{solve_game}
 \title{Main solver}
 \usage{
-solve_game(fun, ..., equilibrium = "NE", crit = "sur", model = NULL,
-  n.init = NULL, n.ite, d, nobj, x.to.obj = NULL, noise.var = NULL,
-  Nadir = NULL, Shadow = NULL, integcontrol = NULL,
-  simucontrol = NULL, filtercontrol = NULL, kmcontrol = NULL,
-  returncontrol = NULL, ncores = 1, trace = 1, seed = NULL,
-  calibcontrol = NULL, freq.exploit = 1000)
+solve_game(
+  fun,
+  ...,
+  equilibrium = "NE",
+  crit = "sur",
+  model = NULL,
+  n.init = NULL,
+  n.ite,
+  d,
+  nobj,
+  x.to.obj = NULL,
+  noise.var = NULL,
+  Nadir = NULL,
+  Shadow = NULL,
+  integcontrol = NULL,
+  simucontrol = NULL,
+  filtercontrol = NULL,
+  kmcontrol = NULL,
+  returncontrol = NULL,
+  ncores = 1,
+  trace = 1,
+  seed = NULL,
+  calibcontrol = NULL,
+  freq.exploit = 1000
+)
 }
 \arguments{
 \item{fun}{fonction with vectorial output}

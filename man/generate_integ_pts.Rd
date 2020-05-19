@@ -4,10 +4,21 @@
 \alias{generate_integ_pts}
 \title{Strategy generation}
 \usage{
-generate_integ_pts(n.s, d, nobj, x.to.obj = NULL,
-  gridtype = "cartesian", equilibrium = "NE", lb = rep(0, d),
-  ub = rep(1, d), include.obs = FALSE, model = NULL,
-  init_set = NULL, include_set = NULL, seed = 42)
+generate_integ_pts(
+  n.s,
+  d,
+  nobj,
+  x.to.obj = NULL,
+  gridtype = "cartesian",
+  equilibrium = "NE",
+  lb = rep(0, d),
+  ub = rep(1, d),
+  include.obs = FALSE,
+  model = NULL,
+  init_set = NULL,
+  include_set = NULL,
+  seed = 42
+)
 }
 \arguments{
 \item{n.s}{scalar or vector. If scalar, total number of strategies (to be divided equally among players),

@@ -4,8 +4,14 @@
 \alias{crit_PNash}
 \title{Probability for a strategy of being a Nash Equilibrium}
 \usage{
-crit_PNash(idx, integcontrol, type = "simu", model, ncores = 1,
-  control = list(nsim = 100, eps = 1e-06))
+crit_PNash(
+  idx,
+  integcontrol,
+  type = "simu",
+  model,
+  ncores = 1,
+  control = list(nsim = 100, eps = 1e-06)
+)
 }
 \arguments{
 \item{idx}{is the index on the grid of the strategy evaluated}

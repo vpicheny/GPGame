@@ -4,10 +4,20 @@
 \alias{plotGameGrid}
 \title{Visualisation of equilibrium solution in input/output space}
 \usage{
-plotGameGrid(fun = NULL, domain = NULL, n.grid, graphs = c("both",
-  "design", "objective"), x.to.obj = NULL, integcontrol = NULL,
-  equilibrium = c("NE", "KSE", "CKSE", "NKSE"), fun.grid = NULL,
-  Nadir = NULL, Shadow = NULL, calibcontrol = NULL, ...)
+plotGameGrid(
+  fun = NULL,
+  domain = NULL,
+  n.grid,
+  graphs = c("both", "design", "objective"),
+  x.to.obj = NULL,
+  integcontrol = NULL,
+  equilibrium = c("NE", "KSE", "CKSE", "NKSE"),
+  fun.grid = NULL,
+  Nadir = NULL,
+  Shadow = NULL,
+  calibcontrol = NULL,
+  ...
+)
 }
 \arguments{
 \item{fun}{name of the function considered}

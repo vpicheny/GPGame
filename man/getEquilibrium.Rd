@@ -4,10 +4,20 @@
 \alias{getEquilibrium}
 \title{Equilibrium computation of a discrete game for a given matrix with objectives values}
 \usage{
-getEquilibrium(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"),
-  nobj = 2, n.s, expanded.indices = NULL, return.design = FALSE,
-  sorted = FALSE, cross = FALSE, kweights = NULL, Nadir = NULL,
-  Shadow = NULL, calibcontrol = NULL)
+getEquilibrium(
+  Z,
+  equilibrium = c("NE", "NKSE", "KSE", "CKSE"),
+  nobj = 2,
+  n.s,
+  expanded.indices = NULL,
+  return.design = FALSE,
+  sorted = FALSE,
+  cross = FALSE,
+  kweights = NULL,
+  Nadir = NULL,
+  Shadow = NULL,
+  calibcontrol = NULL
+)
 }
 \arguments{
 \item{Z}{is a matrix of size [\code{npts x nsim*nobj}] of objective values, see details,}

@@ -4,10 +4,23 @@
 \alias{filter_for_Game}
 \title{All-purpose filter}
 \usage{
-filter_for_Game(n.s.target, model = NULL, predictions = NULL,
-  type = "window", equilibrium = "NE", integcontrol, options = NULL,
-  ncores = 1, random = TRUE, include.obs = FALSE, min.crit = 1e-12,
-  nsamp = NULL, Nadir = NULL, Shadow = NULL, target = NULL)
+filter_for_Game(
+  n.s.target,
+  model = NULL,
+  predictions = NULL,
+  type = "window",
+  equilibrium = "NE",
+  integcontrol,
+  options = NULL,
+  ncores = 1,
+  random = TRUE,
+  include.obs = FALSE,
+  min.crit = 1e-12,
+  nsamp = NULL,
+  Nadir = NULL,
+  Shadow = NULL,
+  target = NULL
+)
 }
 \arguments{
 \item{n.s.target}{scalar or vector of number of strategies (one value per player) to select. For \code{NE}, if \code{n.s.target} is a scalar
