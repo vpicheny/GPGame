@@ -40,6 +40,10 @@ otherwise number of strategies per player.}
 
 \item{model}{optional list of \code{km} models (used if \code{include.obs=TRUE})}
 
+\item{init_set}{large grid to subsample from}
+
+\item{include_set}{grid to be included in the larger one generated}
+
 \item{seed}{random seed used by \code{\link[DiceDesign]{lhsDesign}}}
 }
 \value{
