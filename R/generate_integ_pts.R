@@ -12,6 +12,8 @@
 ##' @param include.obs Boolean, if TRUE observations given in \code{model@X} are added to the integration points (only for \code{KSE} and \code{CKSE})
 ##' @param model optional list of \code{km} models (used if \code{include.obs=TRUE})
 ##' @param seed random seed used by \code{\link[DiceDesign]{lhsDesign}}
+##' @param init_set large grid to subsample from
+##' @param include_set grid to be included in the larger one generated
 ##' @return A list containing two matrices, \code{integ.pts} the design of experiments and \code{expanded.indices}
 ##' the corresponding indices (for \code{NE}), and the vector \code{n.s}
 ##' @export
