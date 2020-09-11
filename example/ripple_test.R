@@ -73,8 +73,6 @@ switch_ripple_n <- function(x, constrained = FALSE){
 ## Try game solving
 library(GPGame)
 
-
-set.seed(42)
 d <- 8
 nobj <- d-3 # unconstrained
 lower <- c(0.000110815602836879, 7.83532027529331e-06, 1.29313391262165e-06, rep(1.29313391262165e-06, d-3))
@@ -98,7 +96,8 @@ x.to.obj <- c(nobj, nobj, nobj, 1:(nobj - 1), 1)
 filtercontrol <- list(nsimPoints=1000, ncandPoints=200,
                       filter=c("window", "Pnash"))
 
-opt <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = x.to.obj,
+set.seed(42)
+opt <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = x.to.obj, equilibrium = "NE",
                   integcontrol=list(n.s=n.s, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
                   filtercontrol=filtercontrol)
 
@@ -107,6 +106,7 @@ pairs(rbind(cbind(opt$model[[1]]@y, opt$model[[2]]@y, opt$model[[3]]@y, opt$mode
             opt$Eq.poff), col = c(rep(1, n.init), rep(3, n.ite), rep(2, nrow(opt$Eq.design))), pch = c(rep(3, n.init), rep(4, n.ite), rep(20, nrow(opt$Eq.design))),
       labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])))
 if(FALSE) dev.off()
+save.image(paste0("RippleNE_", n.init, "_", n.ite))
 
 ## identify best design: 
 which(opt$model[[1]]@X[,1] ==opt$Eq.design[1])
@@ -115,6 +115,36 @@ plot(opt$model[[2]]@y, opt$model[[3]]@y)
 points(matrix(opt$Eq.poff[,c(2,3)], ncol = 2), col = "red", pch = 20)
 
 ## Kalai version
+set.seed(1)
+gridtype <- "lhs"
+n.init <- 50
+n.ite <- 50
+n.s2 <- 1e5
+filtercontrol <- list(nsimPoints=1000, ncandPoints=200, filter=c("window", "window"))
+optKS <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = NULL, equilibrium = "KSE",
+                  integcontrol=list(n.s=n.s2, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
+                  filtercontrol=filtercontrol)
+save.image("RippleKS_50_50_8d.RData")
+
+if(FALSE) pdf("RippleKS.pdf", width = 8, height = 8)
+pairs(rbind(cbind(optKS$model[[1]]@y, optKS$model[[2]]@y, optKS$model[[3]]@y, optKS$model[[4]]@y, optKS$model[[5]]@y),
+            optKS$Eq.poff), col = c(rep(1, n.init), rep(3, n.ite), 2), pch = c(rep(3, n.init), rep(4, n.ite), 20),
+      labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])), main = "KS")
+if(FALSE) dev.off()
 
 
 
+## Nash Kalai version
+set.seed(42)
+gridtype <- "lhs"
+n.init <- 50
+n.ite <- 50
+n.s <- c(26, rep(11, nobj - 2), 51)
+
+x.to.obj <- c(nobj, nobj, nobj, 1:(nobj - 1), 1)
+filtercontrol <- list(nsimPoints=1000, ncandPoints=200,
+                      filter=c("window", "Pnash"))
+
+optNKS <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = x.to.obj, equilibrium = "NKSE",
+                  integcontrol=list(n.s=n.s, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
+                  filtercontrol=filtercontrol)
