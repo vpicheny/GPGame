@@ -97,22 +97,22 @@ filtercontrol <- list(nsimPoints=1000, ncandPoints=200,
                       filter=c("window", "Pnash"))
 
 set.seed(42)
-opt <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = x.to.obj, equilibrium = "NE",
+optNE <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = x.to.obj, equilibrium = "NE",
                   integcontrol=list(n.s=n.s, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
                   filtercontrol=filtercontrol)
 
 if(FALSE) pdf("RippleNash.pdf", width = 8, height = 8)
-pairs(rbind(cbind(opt$model[[1]]@y, opt$model[[2]]@y, opt$model[[3]]@y, opt$model[[4]]@y, opt$model[[5]]@y),
-            opt$Eq.poff), col = c(rep(1, n.init), rep(3, n.ite), rep(2, nrow(opt$Eq.design))), pch = c(rep(3, n.init), rep(4, n.ite), rep(20, nrow(opt$Eq.design))),
+pairs(rbind(cbind(optNE$model[[1]]@y, optNE$model[[2]]@y, optNE$model[[3]]@y, optNE$model[[4]]@y, optNE$model[[5]]@y),
+            optNE$Eq.poff), col = c(rep(1, n.init), rep(3, n.ite), rep(2, nrow(optNE$Eq.design))), pch = c(rep(3, n.init), rep(4, n.ite), rep(20, nrow(optNE$Eq.design))),
       labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])))
 if(FALSE) dev.off()
-save.image(paste0("RippleNE_", n.init, "_", n.ite))
+save.image(paste0("RippleNE_", n.init, "_", n.ite, "_8d.RData"))
 
 ## identify best design: 
-which(opt$model[[1]]@X[,1] ==opt$Eq.design[1])
+which(optNE$model[[1]]@X[,1] == optNE$Eq.design[1])
 
-plot(opt$model[[2]]@y, opt$model[[3]]@y)
-points(matrix(opt$Eq.poff[,c(2,3)], ncol = 2), col = "red", pch = 20)
+plot(optNE$model[[2]]@y, optNE$model[[3]]@y)
+points(matrix(optNE$Eq.poff[,c(2,3)], ncol = 2), col = "red", pch = 20)
 
 ## Kalai version
 set.seed(1)
@@ -124,11 +124,18 @@ filtercontrol <- list(nsimPoints=1000, ncandPoints=200, filter=c("window", "wind
 optKS <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = NULL, equilibrium = "KSE",
                   integcontrol=list(n.s=n.s2, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
                   filtercontrol=filtercontrol)
-save.image("RippleKS_50_50_8d.RData")
+save.image("RippleKS_", n.init, "_", n.ite, "_8d.RData")
 
 if(FALSE) pdf("RippleKS.pdf", width = 8, height = 8)
-pairs(rbind(cbind(optKS$model[[1]]@y, optKS$model[[2]]@y, optKS$model[[3]]@y, optKS$model[[4]]@y, optKS$model[[5]]@y),
-            optKS$Eq.poff), col = c(rep(1, n.init), rep(3, n.ite), 2), pch = c(rep(3, n.init), rep(4, n.ite), 20),
+Y_KS <- cbind(optKS$model[[1]]@y, optKS$model[[2]]@y, optKS$model[[3]]@y, optKS$model[[4]]@y, optKS$model[[5]]@y)
+isdPF_KS <- emoa::is_dominated(t(Y_KS))
+cols <- c(rep(1, n.init), rep(3, n.ite), 1)
+pchs <- c(rep(3, n.init), rep(4, n.ite), 24)
+bgs <- c(rep(NA, n.init+n.ite), 2)
+pchs[isdPF_KS] <- 1
+cexs <- rep(1.5, nrow(Y_KS) + 1)
+cexs[isdPF_KS] <- 1
+pairs(rbind(Y_KS, optKS$Eq.poff), col = cols, pch = pchs, bg = bgs, cex = cexs,
       labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])), main = "KS")
 if(FALSE) dev.off()
 
@@ -148,3 +155,24 @@ filtercontrol <- list(nsimPoints=1000, ncandPoints=200,
 optNKS <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = x.to.obj, equilibrium = "NKSE",
                   integcontrol=list(n.s=n.s, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
                   filtercontrol=filtercontrol)
+
+save.image("RippleNKS_", n.init, "_", n.ite, "_8d.RData")
+
+# Get poff from Nash search: 
+Nash_poff <- optNE$Eq.poff
+
+if(FALSE) pdf("RippleNKS.pdf", width = 8, height = 8)
+Y_NKS <- cbind(optNKS$model[[1]]@y, optNKS$model[[2]]@y, optNKS$model[[3]]@y, optNKS$model[[4]]@y, optNKS$model[[5]]@y)
+isdPF_NKS <- which(emoa::is_dominated(t(Y_NKS)))
+cols <- c(rep(1, n.init), rep(3, n.ite), 1, 1)
+pchs <- c(rep(3, n.init), rep(4, n.ite), 23, 25)
+bgs <- c(rep(NA, n.init+n.ite), 2, 2)
+pchs[isdPF_NKS] <- 1
+cexs <- rep(1, nrow(Y_NKS) + 2)
+cexs[isdPF_NKS] <- 1
+pairs(rbind(Y_NKS, optNKS$Eq.poff,  Nash_poff), col = cols, pch = pchs, cex = cexs, bg = bgs,
+      labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])), main = "NKS")
+if(FALSE) dev.off()
+
+
+
