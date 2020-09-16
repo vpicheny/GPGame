@@ -72,9 +72,13 @@ switch_ripple_n <- function(x, constrained = FALSE){
 ################################################################################
 ## Try game solving
 library(GPGame)
+library(parallel)
+
+parallel <- TRUE #TRUE #
+if(parallel) ncores <- 5 else ncores <- 1
 
 d <- 8
-nobj <- d-3 # unconstrained
+nobj <- d - 3 # unconstrained
 lower <- c(0.000110815602836879, 7.83532027529331e-06, 1.29313391262165e-06, rep(1.29313391262165e-06, d-3))
 upper <- c(0.000221631205673759, 0.000783532027529331, 0.000783532027529331, rep(6.46566956310825e-05, d-3))
 
@@ -88,8 +92,8 @@ fn <- function(x){
 ## Nash version
 
 gridtype <- "lhs"
-n.init <- 50
-n.ite <- 50
+n.init <- 80
+n.ite <- 70
 n.s <- c(26, rep(11, nobj - 2), 51)
 
 x.to.obj <- c(nobj, nobj, nobj, 1:(nobj - 1), 1)
@@ -99,7 +103,7 @@ filtercontrol <- list(nsimPoints=1000, ncandPoints=200,
 set.seed(42)
 optNE <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = x.to.obj, equilibrium = "NE",
                   integcontrol=list(n.s=n.s, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
-                  filtercontrol=filtercontrol)
+                  filtercontrol=filtercontrol, ncores = ncores)
 
 if(FALSE) pdf("RippleNash.pdf", width = 8, height = 8)
 pairs(rbind(cbind(optNE$model[[1]]@y, optNE$model[[2]]@y, optNE$model[[3]]@y, optNE$model[[4]]@y, optNE$model[[5]]@y),
@@ -115,15 +119,15 @@ plot(optNE$model[[2]]@y, optNE$model[[3]]@y)
 points(matrix(optNE$Eq.poff[,c(2,3)], ncol = 2), col = "red", pch = 20)
 
 ## Kalai version
-set.seed(1)
+set.seed(42)
 gridtype <- "lhs"
-n.init <- 50
-n.ite <- 50
-n.s2 <- 1e5
+n.init <- 80
+n.ite <- 70
+n.s2 <- 1e6
 filtercontrol <- list(nsimPoints=1000, ncandPoints=200, filter=c("window", "window"))
 optKS <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = NULL, equilibrium = "KSE",
                   integcontrol=list(n.s=n.s2, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
-                  filtercontrol=filtercontrol)
+                  filtercontrol=filtercontrol, ncores = ncores)
 save.image("RippleKS_", n.init, "_", n.ite, "_8d.RData")
 
 if(FALSE) pdf("RippleKS.pdf", width = 8, height = 8)
@@ -144,8 +148,8 @@ if(FALSE) dev.off()
 ## Nash Kalai version
 set.seed(42)
 gridtype <- "lhs"
-n.init <- 50
-n.ite <- 50
+n.init <- 80
+n.ite <- 70
 n.s <- c(26, rep(11, nobj - 2), 51)
 
 x.to.obj <- c(nobj, nobj, nobj, 1:(nobj - 1), 1)
@@ -154,7 +158,7 @@ filtercontrol <- list(nsimPoints=1000, ncandPoints=200,
 
 optNKS <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = x.to.obj, equilibrium = "NKSE",
                   integcontrol=list(n.s=n.s, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
-                  filtercontrol=filtercontrol)
+                  filtercontrol=filtercontrol, ncores = ncores)
 
 save.image("RippleNKS_", n.init, "_", n.ite, "_8d.RData")
 
@@ -166,7 +170,7 @@ Y_NKS <- cbind(optNKS$model[[1]]@y, optNKS$model[[2]]@y, optNKS$model[[3]]@y, op
 isdPF_NKS <- which(emoa::is_dominated(t(Y_NKS)))
 cols <- c(rep(1, n.init), rep(3, n.ite), 1, 1)
 pchs <- c(rep(3, n.init), rep(4, n.ite), 23, 25)
-bgs <- c(rep(NA, n.init+n.ite), 2, 2)
+bgs <- c(rep(NA, n.init+n.ite), 2, 4)
 pchs[isdPF_NKS] <- 1
 cexs <- rep(1, nrow(Y_NKS) + 2)
 cexs[isdPF_NKS] <- 1
