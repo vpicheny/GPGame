@@ -74,7 +74,7 @@ switch_ripple_n <- function(x, constrained = FALSE){
 library(GPGame)
 library(parallel)
 
-parallel <- TRUE #TRUE #
+parallel <- FALSE #TRUE #
 if(parallel) ncores <- 5 else ncores <- 1
 
 d <- 8
@@ -88,6 +88,8 @@ fn <- function(x){
   # ll <- length(res)
   # return(res[1:(ll-5)])
 }
+
+
 
 ## Nash version
 
@@ -107,7 +109,7 @@ optNE <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite
 
 if(FALSE) pdf("RippleNash.pdf", width = 8, height = 8)
 pairs(rbind(cbind(optNE$model[[1]]@y, optNE$model[[2]]@y, optNE$model[[3]]@y, optNE$model[[4]]@y, optNE$model[[5]]@y),
-            optNE$Eq.poff), col = c(rep(1, n.init), rep(3, n.ite), rep(2, nrow(optNE$Eq.design))), pch = c(rep(3, n.init), rep(4, n.ite), rep(20, nrow(optNE$Eq.design))),
+            optNE$Eq.poff), col = c(rep(1, n.init), rep(3, n.ite), 2), pch = c(rep(3, n.init), rep(4, n.ite), 20),
       labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])))
 if(FALSE) dev.off()
 save.image(paste0("RippleNE_", n.init, "_", n.ite, "_8d.RData"))
@@ -128,18 +130,18 @@ filtercontrol <- list(nsimPoints=1000, ncandPoints=200, filter=c("window", "wind
 optKS <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.ite, x.to.obj = NULL, equilibrium = "KSE",
                   integcontrol=list(n.s=n.s2, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
                   filtercontrol=filtercontrol, ncores = ncores)
-save.image("RippleKS_", n.init, "_", n.ite, "_8d.RData")
+save.image(paste0("RippleKS_", n.init, "_", n.ite, "_8d.RData"))
 
 if(FALSE) pdf("RippleKS.pdf", width = 8, height = 8)
 Y_KS <- cbind(optKS$model[[1]]@y, optKS$model[[2]]@y, optKS$model[[3]]@y, optKS$model[[4]]@y, optKS$model[[5]]@y)
-isdPF_KS <- emoa::is_dominated(t(Y_KS))
-cols <- c(rep(1, n.init), rep(3, n.ite), 1)
-pchs <- c(rep(3, n.init), rep(4, n.ite), 24)
-bgs <- c(rep(NA, n.init+n.ite), 2)
+isdPF_KS <- which(emoa::is_dominated(t(Y_KS)))
+cols <- c(rep(1, n.init), rep(3, n.ite), 1, rep(NA, 150))
+pchs <- c(rep(3, n.init), rep(4, n.ite), 24, rep(NA, 150))
+bgs <- c(rep(NA, n.init+n.ite), 2, rep(NA, 150))
 pchs[isdPF_KS] <- 1
-cexs <- rep(1.5, nrow(Y_KS) + 1)
+cexs <- c(rep(1.5, nrow(Y_KS) + 1), rep(NA, 150))
 cexs[isdPF_KS] <- 1
-pairs(rbind(Y_KS, optKS$Eq.poff), col = cols, pch = pchs, bg = bgs, cex = cexs,
+pairs(rbind(Y_KS, optKS$Eq.poff, Y_NKS), col = cols, pch = pchs, bg = bgs, cex = cexs,
       labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])), main = "KS")
 if(FALSE) dev.off()
 
@@ -160,7 +162,7 @@ optNKS <- solve_game(fun = fn, nobj = nobj, d = d, n.init = n.init, n.ite = n.it
                   integcontrol=list(n.s=n.s, gridtype=gridtype), kmcontrol = list(model.trend=~.), 
                   filtercontrol=filtercontrol, ncores = ncores)
 
-save.image("RippleNKS_", n.init, "_", n.ite, "_8d.RData")
+save.image(paste0("RippleNKS_", n.init, "_", n.ite, "_8d.RData"))
 
 # Get poff from Nash search: 
 Nash_poff <- optNE$Eq.poff
@@ -168,13 +170,13 @@ Nash_poff <- optNE$Eq.poff
 if(FALSE) pdf("RippleNKS.pdf", width = 8, height = 8)
 Y_NKS <- cbind(optNKS$model[[1]]@y, optNKS$model[[2]]@y, optNKS$model[[3]]@y, optNKS$model[[4]]@y, optNKS$model[[5]]@y)
 isdPF_NKS <- which(emoa::is_dominated(t(Y_NKS)))
-cols <- c(rep(1, n.init), rep(3, n.ite), 1, 1)
-pchs <- c(rep(3, n.init), rep(4, n.ite), 23, 25)
-bgs <- c(rep(NA, n.init+n.ite), 2, 4)
+cols <- c(rep(1, n.init), rep(3, n.ite), 1, 1, rep(NA, 150))
+pchs <- c(rep(3, n.init), rep(4, n.ite), 23, 25, rep(NA, 150))
+bgs <- c(rep(NA, n.init+n.ite), 2, 4, rep(NA, 150))
 pchs[isdPF_NKS] <- 1
-cexs <- rep(1, nrow(Y_NKS) + 2)
+cexs <- c(rep(1, nrow(Y_NKS) + 2), rep(NA, 150))
 cexs[isdPF_NKS] <- 1
-pairs(rbind(Y_NKS, optNKS$Eq.poff,  Nash_poff), col = cols, pch = pchs, cex = cexs, bg = bgs,
+pairs(rbind(Y_NKS, optNKS$Eq.poff,  Nash_poff,Y_KS), col = cols, pch = pchs, cex = cexs, bg = bgs,
       labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])), main = "NKS")
 if(FALSE) dev.off()
 
