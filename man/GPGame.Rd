@@ -83,7 +83,7 @@ NIPS BayesOpt workshop, December 2017, Long Beach, USA,
 \emph{https://bayesopt.github.io/papers/2017/28.pdf}.
 }
 \seealso{
-\code{\link[DiceKriging]{DiceKriging}}, \code{\link[DiceOptim]{DiceOptim}}, \code{\link[KrigInv]{KrigInv}}, \code{\link[GPareto]{GPareto}}
+\code{\link[DiceKriging]{DiceKriging-package}}, \code{\link[DiceOptim]{DiceOptim-package}}, \code{\link[KrigInv]{KrigInv-package}}, \code{\link[GPareto]{GPareto-package}}
 }
 \author{
 Victor Picheny, Mickael Binois
