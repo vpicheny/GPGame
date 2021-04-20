@@ -16,7 +16,7 @@
 ##' \code{\link[GPGame]{solve_game}} \cr
 ##' \code{\link[GPGame]{plotGame}} \cr
 ##'
-##' @seealso \code{\link[DiceKriging]{DiceKriging}}, \code{\link[DiceOptim]{DiceOptim}}, \code{\link[KrigInv]{KrigInv}}, \code{\link[GPareto]{GPareto}}
+##' @seealso \code{\link[DiceKriging]{DiceKriging-package}}, \code{\link[DiceOptim]{DiceOptim-package}}, \code{\link[KrigInv]{KrigInv-package}}, \code{\link[GPareto]{GPareto-package}}
 ##' @examples
 ##' \dontrun{
 ##' # To use parallel computation (turn off on Windows)
