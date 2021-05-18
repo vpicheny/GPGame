@@ -136,8 +136,8 @@ prob.of.non.domination <- function(paretoFront=NULL, model=NULL, integration.poi
       # Check if Pareto front is sorted increasingly by its first component
       if (is.unsorted(paretoFront[,1])){
         nondominated.sorted <- sort(paretoFront[,1], index.return=TRUE)[[2]]
-        phi.x.tilde <- phi.x.tilde[nondominated.sorted,]
-        phi.y.tilde <- phi.y.tilde[nondominated.sorted,]
+        phi.x.tilde <- phi.x.tilde[nondominated.sorted,,drop = FALSE]
+        phi.y.tilde <- phi.y.tilde[nondominated.sorted,,drop = FALSE]
       }
       
       pn <- phi.x.tilde[1,]
