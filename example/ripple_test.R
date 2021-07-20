@@ -180,5 +180,69 @@ pairs(rbind(Y_NKS, optNKS$Eq.poff,  Nash_poff,Y_KS), col = cols, pch = pchs, cex
       labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])), main = "NKS")
 if(FALSE) dev.off()
 
+################################################################################
+## Added at MACODA revision
+
+load("./Ripple_results/RippleKS_80_70_8d.RData")
+load("./Ripple_results/RippleNE_80_70_8d.RData")
+load("./Ripple_results/RippleNKS_80_70_8d.RData")
 
 
+# Get poff from Nash search: 
+Nash_poff <- optNE$Eq.poff
+
+# New version
+if(FALSE) pdf("RippleNKS2.pdf", width = 8, height = 8)
+Y_NKS <- cbind(optNKS$model[[1]]@y, optNKS$model[[2]]@y, optNKS$model[[3]]@y, optNKS$model[[4]]@y, optNKS$model[[5]]@y)
+isdPF_NKS <- which(emoa::is_dominated(t(Y_NKS)))
+cols <- c(rep(1, n.init), rep(3, n.ite), 1, 1, 1, rep(NA, 150))
+pchs <- c(rep(3, n.init), rep(4, n.ite), 23, 22, 25,rep(NA, 150))
+bgs <- c(rep(NA, n.init+n.ite), 4, 7, 2, rep(NA, 150))
+pchs[isdPF_NKS] <- 1
+cexs <- c(rep(1.5, nrow(Y_NKS) + 3), rep(NA, 150))
+cexs[isdPF_NKS] <- 1
+cexs[151:153] <- 1.5
+pairs(rbind(Y_NKS, Nash_poff, optKS$Eq.poff, optNKS$Eq.poff, Y_KS), col = cols, pch = pchs, cex = cexs, bg = bgs,
+      labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])), main = "NKS")
+if(FALSE) dev.off()
+
+
+if(export) pdf("parcoords_NKS.pdf", width = 12, height = 6)
+cols2 <- cols
+cols2[151:152] <- c(2,4)
+ltys2 <- c(rep(1,150), 1,2, rep(5, 150))
+ltys2[isdPF_NKS] <- 3
+lwds2 <- c(rep(1,150), 3, 3, rep(0,150))
+dataNKS <- rbind(Y_NKS, optNKS$Eq.poff,  Nash_poff,Y_KS)
+colnames(dataNKS) <- c("f1", "f2", "f3", "f4", "f5")
+MASS::parcoord(dataNKS, col=cols2, lty = ltys2, lwd = lwds2)
+if(export) dev.off()
+
+
+if(FALSE) pdf("RippleKS2.pdf", width = 8, height = 8)
+Y_KS <- cbind(optKS$model[[1]]@y, optKS$model[[2]]@y, optKS$model[[3]]@y, optKS$model[[4]]@y, optKS$model[[5]]@y)
+isdPF_KS <- which(emoa::is_dominated(t(Y_KS)))
+cols <- c(rep(1, n.init), rep(3, n.ite), 1, 1, 1, rep(NA, 150))
+pchs <- c(rep(3, n.init), rep(4, n.ite), 23, 22, 25, rep(NA, 150))
+bgs <- c(rep(NA, n.init+n.ite), 4, 7, 2, rep(NA, 150))
+pchs[isdPF_KS] <- 1
+cexs <- c(rep(1.5, nrow(Y_KS) + 3), rep(NA, 150))
+cexs[isdPF_KS] <- 1
+pairs(rbind(Y_KS, Nash_poff, optKS$Eq.poff, optNKS$Eq.poff, Y_NKS), col = cols, pch = pchs, bg = bgs, cex = cexs,
+      labels = c(expression(f[1]), expression(f[2]), expression(f[3]), expression(f[4]), expression(f[5])), main = "KS")
+if(FALSE) dev.off()
+
+if(export) pdf("parcoords_KS.pdf", width = 12, height = 6)
+cols2 <- cols
+cols2[151] <- c(7)
+ltys2 <- c(rep(1,150), 1, rep(5, 150))
+ltys2[isdPF_KS] <- 3
+lwds2 <- c(rep(1,150), 3, rep(0,150))
+dataKS <- rbind(Y_KS, optKS$Eq.poff, Y_NKS)
+colnames(dataKS) <- c("f1", "f2", "f3", "f4", "f5")
+MASS::parcoord(dataKS, col=cols2, lty = ltys2, lwd = lwds2)
+if(export) dev.off()
+
+# If needed: empirical comparison
+empPF <- mco::nsga2(fn = fn, idim = d, odim = 5, lower.bounds = rep(0,d), upper.bounds = rep(1,d), popsize = 5000, generations = 300)
+pairs(rbind(empPF$value, Y_KS,Y_NKS), col = c(rep(1,1000), rep(2,300)))
