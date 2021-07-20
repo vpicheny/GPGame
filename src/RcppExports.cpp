@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // getKS_cpp
 int getKS_cpp(NumericMatrix Z, NumericVector Nadir, NumericVector Shadow);
 RcppExport SEXP _GPGame_getKS_cpp(SEXP ZSEXP, SEXP NadirSEXP, SEXP ShadowSEXP) {
