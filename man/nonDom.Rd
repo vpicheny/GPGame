@@ -36,19 +36,6 @@ indPF <- nonDom(ref, return.idx = TRUE)
 all(nonDom(ref) == ref[indPF,])
 
 system.time(res <- nonDom(test, ref[indPF,,drop = FALSE], return.idx = TRUE))
-
-res2 <- rep(NA, n2)
-library(emoa)
-t0 <- Sys.time()
-for(i in 1:n2){
-  res2[i] <- !is_dominated(t(rbind(test[i,, drop = FALSE], ref[indPF,])))[1]
-}
-print(Sys.time() - t0)
-
-all(res == which(res2))
-
-all(nonDom(test, ref) == test[res2,])
-
 }
 }
 \references{

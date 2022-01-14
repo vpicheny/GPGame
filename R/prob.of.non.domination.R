@@ -1,15 +1,15 @@
-##' Computes exactlty the probability of non-domination for a set of points up to 3 objectives.
-##' Then it is approximated by sampling
-##' @noRd
-##' @title Probability of non-domination for a set of points (exact up to 3 objectives)
-##' @param paretoFront (optional) matrix corresponding to the Pareto Front (one output per column).
-##' @param model list of objects of class \code{\link[DiceKriging]{km}}, one for each objective functions,
-##' @param integration.points Points to compute the probability
-##' @param predictions An optional list of predictions (using \code{\link[DiceKriging]{predict.km}}) at
-##'        integration points for each model.
-##' @param nsamp number of samples to estimate the probability of non-domination, based on a set of points sampled from the predictive distribution
-##' @details TODO: improve the sampling method
-##' @return A vector of probabilities
+#' Computes exactlty the probability of non-domination for a set of points up to 3 objectives.
+#' Then it is approximated by sampling
+#' @noRd
+#' @title Probability of non-domination for a set of points (exact up to 3 objectives)
+#' @param paretoFront (optional) matrix corresponding to the Pareto Front (one output per column).
+#' @param model list of objects of class \code{\link[DiceKriging]{km}}, one for each objective functions,
+#' @param integration.points Points to compute the probability
+#' @param predictions An optional list of predictions (using \code{\link[DiceKriging]{predict.km}}) at
+#'        integration points for each model.
+#' @param nsamp number of samples to estimate the probability of non-domination, based on a set of points sampled from the predictive distribution
+#' @details TODO: improve the sampling method
+#' @return A vector of probabilities
 ## ' @export
 ## ' @useDynLib DiceMOO
 ## ' @references
