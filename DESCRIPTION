@@ -26,4 +26,6 @@ Suggests:
     DiceOptim, 
     testthat
 LinkingTo: Rcpp
+URL: https://github.com/vpicheny/GPGame
+BugReports: https://github.com/vpicheny/GPGame/issues
 RoxygenNote: 7.1.2
