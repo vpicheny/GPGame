@@ -896,6 +896,5 @@ restart_sg <- function(results, fun, ..., equilibrium="NE", crit="sur", n.ite, x
                            integcontrol = results$integcontrol, simucontrol = simucontrol, kmcontrol = kmcontrol,
                            filtercontrol = filtercontrol, ncores = ncores, trace = trace, seed = seed)
   new_result$Jplus <- c(results$Jplus, new_result$Jplus)
-  
 }
 

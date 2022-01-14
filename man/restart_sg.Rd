@@ -64,5 +64,5 @@ Wrapper around \code{\link[GPGame]{solve_game}} to add iterations to an existing
 Unless given new values, restart_sg reuses values stored in results (e.g., \code{integcontrol}).
 }
 \note{
-Temporary function: maybe save more details in results ?
+For beta testing, this function could evolve.
 }
