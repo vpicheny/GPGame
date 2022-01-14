@@ -41,6 +41,9 @@ the other coordinates can be set to \code{Inf} (resp. \code{-Inf}).}
 \item{calibcontrol}{an optional list for calibration problems, containing \code{target} a vector of target values for the objectives and 
 \code{log} a Boolean stating if a log transformation should be used or not.}
 }
+\value{
+No value returned, called for visualization.
+}
 \description{
 Plot equilibrium search result (2-objectives only)
 }

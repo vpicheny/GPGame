@@ -1,101 +1,102 @@
 #----------------------------------------------------------------
-##' Computes the SUR criterion associated to an equilibrium for a given \code{xnew} and a set of trajectories of objective functions
-##' on a predefined grid.
-##' @title SUR criterion for equilibria
-##' @param idx is the index on the grid of the strategy evaluated
+#' Computes the SUR criterion associated to an equilibrium for a given \code{xnew} and a set of trajectories of objective functions
+#' on a predefined grid.
+#' @title SUR criterion for equilibria
+#' @param idx is the index on the grid of the strategy evaluated
 ## ' #@param idx,x is the strategy evaluated (at least one should be provided). idx is the index on the grid (faster)
 ## ' #while x is the strategy value (vector of size dim)
-##' @param model is a list of \code{nobj} \code{\link[DiceKriging]{km}} models
-##' @param integcontrol is a list containing: \code{integ.pts}, a [\code{npts x dim}] matrix defining the grid,
-##' \code{expanded.indices} a matrix containing the indices of the \code{integ.pts} on the grid and \code{n.s},
-##' a \code{nobj} vector containing the number of strategies per player
-##' @param Simu is a matrix of size [\code{npts x nsim*nobj}] containing the trajectories of the
-##' objective functions (one column per trajectory,
-##' first all the trajectories for obj1, then obj2, etc.)
-##' @param precalc.data is a list of length \code{nobj} of precalculated data (based on kriging models at integration points)
-##' for faster computation - computed if not provided
-##' @param equilibrium equilibrium type: either "\code{NE}", "\code{KSE}", "\code{CKSE}" or "\code{NKSE}"
-##' @param n.ynew is the number of \code{ynew} simulations (if not provided, equal to the number of trajectories)
-##' @param cross if \code{TRUE}, all the combinations of trajectories are used (increases accuracy but also cost)
-##' @param IS if \code{TRUE}, importance sampling is used for ynew
-##' @param plot if \code{TRUE}, draws equilibria samples (should always be turned off)
+#' @param model is a list of \code{nobj} \code{\link[DiceKriging]{km}} models
+#' @param integcontrol is a list containing: \code{integ.pts}, a [\code{npts x dim}] matrix defining the grid,
+#' \code{expanded.indices} a matrix containing the indices of the \code{integ.pts} on the grid and \code{n.s},
+#' a \code{nobj} vector containing the number of strategies per player
+#' @param Simu is a matrix of size [\code{npts x nsim*nobj}] containing the trajectories of the
+#' objective functions (one column per trajectory,
+#' first all the trajectories for obj1, then obj2, etc.)
+#' @param precalc.data is a list of length \code{nobj} of precalculated data (based on kriging models at integration points)
+#' for faster computation - computed if not provided
+#' @param equilibrium equilibrium type: either "\code{NE}", "\code{KSE}", "\code{CKSE}" or "\code{NKSE}"
+#' @param n.ynew is the number of \code{ynew} simulations (if not provided, equal to the number of trajectories)
+#' @param cross if \code{TRUE}, all the combinations of trajectories are used (increases accuracy but also cost)
+#' @param IS if \code{TRUE}, importance sampling is used for ynew
+#' @param plot if \code{TRUE}, draws equilibria samples (should always be turned off)
 ## ' #@param cand.pts,J necessary if a filter has been applied (to avoid mismatch between idx and expanded.indices).
 ## ' #cand.pts is a [ncand x dim] matrix (without filter, equal to integ.pts) and J the vector of indices of cand.pts on the grid.
-##' @param kweights kriging weights for \code{CKS} (TESTING)
-##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
-##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf} for the shadow).
-##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
-##' \code{log} a Boolean stating if a log transformation should be used or not aand , and \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
-##' @export
-##' @seealso \code{\link[GPGame]{crit_PNash}} for an alternative infill criterion
-##' @references
-##' V. Picheny, M. Binois, A. Habbal (2016+), A Bayesian optimization approach to find Nash equilibria,
-##' \emph{https://arxiv.org/abs/1611.02440}.
-##' @importFrom stats cov
-##' @importFrom GPareto checkPredict plotParetoEmp
-##' @importFrom KrigInv predict_nobias_km computeQuickKrigcov precomputeUpdateData
-##' @importFrom grDevices rainbow
-##' @importFrom graphics pairs points
+#' @param kweights kriging weights for \code{CKS} (TESTING)
+#' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
+#' the other coordinates can be set to \code{Inf} (resp. -\code{Inf} for the shadow).
+#' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
+#' \code{log} a Boolean stating if a log transformation should be used or not aand , and \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
+#' @return Criterion value.
+#' @export
+#' @seealso \code{\link[GPGame]{crit_PNash}} for an alternative infill criterion
+#' @references
+#' V. Picheny, M. Binois, A. Habbal (2016+), A Bayesian optimization approach to find Nash equilibria,
+#' \emph{https://arxiv.org/abs/1611.02440}.
+#' @importFrom stats cov
+#' @importFrom GPareto checkPredict plotParetoEmp
+#' @importFrom KrigInv predict_nobias_km computeQuickKrigcov precomputeUpdateData
+#' @importFrom grDevices rainbow
+#' @importFrom graphics pairs points
 ## ' @importFrom emoa is_dominated nondominated_points
-##' @examples
-##' \dontrun{
-##' ##############################################
-##' # 2 variables, 2 players
-##' ##############################################
-##' library(DiceKriging)
-##' set.seed(42)
-##'
-##' # Objective function (R^2 -> R^2)
-##' fun <- function (x)
-##' {
-##'   if (is.null(dim(x)))    x <- matrix(x, nrow = 1)
-##'  b1 <- 15 * x[, 1] - 5
-##'  b2 <- 15 * x[, 2]
-##'  return(cbind((b2 - 5.1*(b1/(2*pi))^2 + 5/pi*b1 - 6)^2 + 10*((1 - 1/(8*pi)) * cos(b1) + 1),
-##'                -sqrt((10.5 - b1)*(b1 + 5.5)*(b2 + 0.5)) - 1/30*(b2 - 5.1*(b1/(2*pi))^2 - 6)^2-
-##'                 1/3 * ((1 - 1/(8 * pi)) * cos(b1) + 1)))
-##' }
-##'
-##' # Grid definition
-##' n.s <- rep(14, 2)
-##' x.to.obj   <- c(1,2)
-##' gridtype <- 'cartesian'
-##' integcontrol <- generate_integ_pts(n.s=n.s, d=4, nobj=2, x.to.obj = x.to.obj, gridtype=gridtype)
-##' integ.pts <- integcontrol$integ.pts
-##' expanded.indices <- integcontrol$expanded.indices
-##'
-##' # Kriging models
-##' n.init <- 11
-##' design <- integ.pts[sample.int(n=nrow(integ.pts), size=n.init, replace=FALSE),]
-##' response <- t(apply(design, 1, fun))
-##' mf1 <- km(~., design = design, response = response[,1], lower=c(.1,.1))
-##' mf2 <- km(~., design = design, response = response[,2], lower=c(.1,.1))
-##' model <- list(mf1, mf2)
-##'
-##' # Conditional simulations
-##' Simu <- t(Reduce(rbind, lapply(model, simulate, nsim=10, newdata=integ.pts, cond=TRUE,
-##'                                    checkNames=FALSE, nugget.sim = 10^-8)))
-##'
-##' # Useful precalculations
-##' library(KrigInv)
-##' precalc.data <- lapply(model, FUN=KrigInv:::precomputeUpdateData, integration.points=integ.pts)
-##'
-##' # Compute criterion for all points on the grid
-##' crit_grid <- lapply(X=1:prod(n.s), FUN=crit_SUR_Eq, model=model,
-##'                     integcontrol=integcontrol, equilibrium = "NE",
-##'                     Simu=Simu, precalc.data=precalc.data, n.ynew=10, IS=FALSE, cross=FALSE)
-##' crit_grid <- unlist(crit_grid)
-##'
-##' # Draw contour of the criterion
-##' filled.contour(seq(0, 1, length.out = n.s[1]), seq(0, 1, length.out = n.s[2]),
-##'                matrix(pmax(0, crit_grid), n.s[1], n.s[2]), main = "SUR criterion",
-##'                xlab = expression(x[1]), ylab = expression(x[2]), color = terrain.colors,
-##'                plot.axes = {axis(1); axis(2);
-##'                             points(design[,1], design[,2], pch = 21, bg = "white")
-##'                            }
-##' )
-##' }
-##'
+#' @examples
+#' \dontrun{
+#' ##############################################
+#' # 2 variables, 2 players
+#' ##############################################
+#' library(DiceKriging)
+#' set.seed(42)
+#'
+#' # Objective function (R^2 -> R^2)
+#' fun <- function (x)
+#' {
+#'   if (is.null(dim(x)))    x <- matrix(x, nrow = 1)
+#'  b1 <- 15 * x[, 1] - 5
+#'  b2 <- 15 * x[, 2]
+#'  return(cbind((b2 - 5.1*(b1/(2*pi))^2 + 5/pi*b1 - 6)^2 + 10*((1 - 1/(8*pi)) * cos(b1) + 1),
+#'                -sqrt((10.5 - b1)*(b1 + 5.5)*(b2 + 0.5)) - 1/30*(b2 - 5.1*(b1/(2*pi))^2 - 6)^2-
+#'                 1/3 * ((1 - 1/(8 * pi)) * cos(b1) + 1)))
+#' }
+#'
+#' # Grid definition
+#' n.s <- rep(14, 2)
+#' x.to.obj   <- c(1,2)
+#' gridtype <- 'cartesian'
+#' integcontrol <- generate_integ_pts(n.s=n.s, d=4, nobj=2, x.to.obj = x.to.obj, gridtype=gridtype)
+#' integ.pts <- integcontrol$integ.pts
+#' expanded.indices <- integcontrol$expanded.indices
+#'
+#' # Kriging models
+#' n.init <- 11
+#' design <- integ.pts[sample.int(n=nrow(integ.pts), size=n.init, replace=FALSE),]
+#' response <- t(apply(design, 1, fun))
+#' mf1 <- km(~., design = design, response = response[,1], lower=c(.1,.1))
+#' mf2 <- km(~., design = design, response = response[,2], lower=c(.1,.1))
+#' model <- list(mf1, mf2)
+#'
+#' # Conditional simulations
+#' Simu <- t(Reduce(rbind, lapply(model, simulate, nsim=10, newdata=integ.pts, cond=TRUE,
+#'                                    checkNames=FALSE, nugget.sim = 10^-8)))
+#'
+#' # Useful precalculations
+#' library(KrigInv)
+#' precalc.data <- lapply(model, FUN=KrigInv:::precomputeUpdateData, integration.points=integ.pts)
+#'
+#' # Compute criterion for all points on the grid
+#' crit_grid <- lapply(X=1:prod(n.s), FUN=crit_SUR_Eq, model=model,
+#'                     integcontrol=integcontrol, equilibrium = "NE",
+#'                     Simu=Simu, precalc.data=precalc.data, n.ynew=10, IS=FALSE, cross=FALSE)
+#' crit_grid <- unlist(crit_grid)
+#'
+#' # Draw contour of the criterion
+#' filled.contour(seq(0, 1, length.out = n.s[1]), seq(0, 1, length.out = n.s[2]),
+#'                matrix(pmax(0, crit_grid), n.s[1], n.s[2]), main = "SUR criterion",
+#'                xlab = expression(x[1]), ylab = expression(x[2]), color = terrain.colors,
+#'                plot.axes = {axis(1); axis(2);
+#'                             points(design[,1], design[,2], pch = 21, bg = "white")
+#'                            }
+#' )
+#' }
+#'
 crit_SUR_Eq <- function(idx, model, integcontrol, Simu, precalc.data=NULL, equilibrium,
                         n.ynew=NULL, cross=FALSE, IS=FALSE, plot=FALSE, kweights = NULL, Nadir = NULL, Shadow = NULL, calibcontrol=NULL){
 

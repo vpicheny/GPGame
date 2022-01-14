@@ -55,6 +55,9 @@ the other coordinates can be set to \code{Inf} (resp. -\code{Inf} for the shadow
 \item{calibcontrol}{an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
 \code{log} a Boolean stating if a log transformation should be used or not aand , and \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).}
 }
+\value{
+Criterion value.
+}
 \description{
 Computes the SUR criterion associated to an equilibrium for a given \code{xnew} and a set of trajectories of objective functions
 on a predefined grid.

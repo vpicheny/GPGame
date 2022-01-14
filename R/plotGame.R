@@ -1,50 +1,50 @@
-##' Plot equilibrium for 2 objectives test problems with evaluations on a grid. The number of variables is not limited.
-##' @title Visualisation of equilibrium solution in input/output space
-##' @param fun name of the function considered
-##' @param domain optional matrix for the bounds of the domain (for now [0,1]^d only), (two columns matrix with min and max)
-##' @param n.grid number of divisions of the grid in each dimension (must correspond to \code{n.s} for Nash equilibriums)
-##' @param graphs either \code{"design"}, \code{"objective"} or \code{"both"} (default) for which graph to display
-##' @param x.to.obj,integcontrol see \code{\link[GPGame]{solve_game}} (for Nash equilibrium only)
-##' @param equilibrium either "\code{NE}" for Nash, "\code{KSE}" for Kalai-Smoridinsky and "\code{NKSE}" for Nash-Kalai-Smoridinsky
-##' @param fun.grid optional matrix containing the values of \code{fun} at \code{integ.pts}. Computed if not provided.
-##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
-##' the other coordinates can be set to \code{Inf} (resp. \code{-Inf}.
-##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
-##' \code{log} a Boolean stating if a log transformation should be used or not and 
-##' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
-##' @param ... further arguments to \code{fun}
-##' @return list returned by invisible() with elements:
-##' \itemize{
+#' Plot equilibrium for 2 objectives test problems with evaluations on a grid. The number of variables is not limited.
+#' @title Visualisation of equilibrium solution in input/output space
+#' @param fun name of the function considered
+#' @param domain optional matrix for the bounds of the domain (for now [0,1]^d only), (two columns matrix with min and max)
+#' @param n.grid number of divisions of the grid in each dimension (must correspond to \code{n.s} for Nash equilibriums)
+#' @param graphs either \code{"design"}, \code{"objective"} or \code{"both"} (default) for which graph to display
+#' @param x.to.obj,integcontrol see \code{\link[GPGame]{solve_game}} (for Nash equilibrium only)
+#' @param equilibrium either "\code{NE}" for Nash, "\code{KSE}" for Kalai-Smoridinsky and "\code{NKSE}" for Nash-Kalai-Smoridinsky
+#' @param fun.grid optional matrix containing the values of \code{fun} at \code{integ.pts}. Computed if not provided.
+#' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
+#' the other coordinates can be set to \code{Inf} (resp. \code{-Inf}.
+#' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
+#' \code{log} a Boolean stating if a log transformation should be used or not and 
+#' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
+#' @param ... further arguments to \code{fun}
+#' @return list returned by invisible() with elements:
+#' \itemize{
 ## '  \item \code{trueEq} equilibrium (list)
-##'  \item \code{trueEqdesign} design corresponding to equilibrium value \code{trueEq}
-##'  \item \code{trueEqPoff} corresponding values of the objective
-##'  \item \code{trueParetoFront} Pareto front
-##'  \item \code{response.grid}
-##'  \item \code{integ.pts, expanded.indices}
-##' }
-##' @importFrom graphics lines
-##' @export
+#'  \item \code{trueEqdesign} design corresponding to equilibrium value \code{trueEq}
+#'  \item \code{trueEqPoff} corresponding values of the objective
+#'  \item \code{trueParetoFront} Pareto front
+#'  \item \code{response.grid}
+#'  \item \code{integ.pts, expanded.indices}
+#' }
+#' @importFrom graphics lines
+#' @export
 ## ' @details
 ## ' Options to plot Shadow and nadir points?
-##' @examples
-##' \dontrun{
-##' library(GPareto)
-##'
-##' ## 2 variables
-##' dom <- matrix(c(0,0,1,1),2)
-##'
-##' plotGameGrid("P1", domain = dom, n.grid = 51, equilibrium = "NE")
-##' plotGameGrid("P1", domain = dom, n.grid = rep(31,2), equilibrium = "NE") ## As in the tests
-##' plotGameGrid("P1", domain = dom, n.grid = 51, equilibrium = "KSE")
-##' plotGameGrid("P1", domain = dom, n.grid = rep(31,2), equilibrium = "NKSE")
-##' plotGameGrid("P1", graphs = "design", domain = dom, n.grid = rep(31,2), equilibrium = "NKSE")
-##'
-##' ## 4 variables
-##' dom <- matrix(rep(c(0,1), each = 4), 4)
-##' plotGameGrid("ZDT3", domain = dom, n.grid = 25, equilibrium = "NE", x.to.obj = c(1,1,2,2))
-##'
-##' }
-##'
+#' @examples
+#' \dontrun{
+#' library(GPareto)
+#'
+#' ## 2 variables
+#' dom <- matrix(c(0,0,1,1),2)
+#'
+#' plotGameGrid("P1", domain = dom, n.grid = 51, equilibrium = "NE")
+#' plotGameGrid("P1", domain = dom, n.grid = rep(31,2), equilibrium = "NE") ## As in the tests
+#' plotGameGrid("P1", domain = dom, n.grid = 51, equilibrium = "KSE")
+#' plotGameGrid("P1", domain = dom, n.grid = rep(31,2), equilibrium = "NKSE")
+#' plotGameGrid("P1", graphs = "design", domain = dom, n.grid = rep(31,2), equilibrium = "NKSE")
+#'
+#' ## 4 variables
+#' dom <- matrix(rep(c(0,1), each = 4), 4)
+#' plotGameGrid("ZDT3", domain = dom, n.grid = 25, equilibrium = "NE", x.to.obj = c(1,1,2,2))
+#'
+#' }
+#'
 plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "design", "objective"), x.to.obj = NULL,
                          integcontrol = NULL, equilibrium = c("NE", "KSE", "CKSE", "NKSE"), fun.grid = NULL, 
                          Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
@@ -173,67 +173,68 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
 
 }
 
-##' Plot equilibrium search result (2-objectives only)
-##' @param res list returned by \code{\link[GPGame]{solve_game}}
-##' @param equilibrium either "\code{NE}" for Nash, "\code{KSE}" for Kalai-Smoridinsky and "\code{NKSE}" for Nash-Kalai-Smoridinsky
-##' @param add logical; if \code{TRUE} adds the first graphical output to an already existing plot; if \code{FALSE}, (default) starts a new plot
-##' @param UQ_eq logical; should simulations of the equilibrium be displayed?
-##' @param simus optional matrix of conditional simulation if \code{UQ_Eq} is \code{TRUE}
-##' @param integcontrol list with \code{n.s} element (maybe n.s should be returned by solve_game). See \code{\link[GPGame]{solve_game}}.
-##' @param simucontrol optional list for handling conditional simulations. See \code{\link[GPGame]{solve_game}}.
-##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
-##' the other coordinates can be set to \code{Inf} (resp. \code{-Inf}).
-##' @param ncores number of CPU available (> 1 makes mean parallel \code{TRUE})
-##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives and 
-##' \code{log} a Boolean stating if a log transformation should be used or not.
-##' @export
-##' @examples
-##' \dontrun{
-##' library(GPareto)
-##' library(parallel)
-##'
-##' # Turn off on Windows
-##' parallel <- FALSE # TRUE
-##' ncores <- 1
-##' if(parallel) ncores <- detectCores()
-##' cov.reestim <- TRUE
-##' n.sim <- 20
-##' n.ynew <- 20
-##' IS <- TRUE
-##' set.seed(1)
-##'
-##' pb <- "P1" # 'P1' 'PDE' 'Diff'
-##' fun <- P1
-##'
-##' equilibrium = "NE"
-##'
-##' d <- 2
-##' nobj <- 2
-##' n.init <- 20
-##' n.ite <- 4
-##' model.trend <- ~1
-##' n.s <- rep(31, 2) #31
-##' x.to.obj   <- c(1,2)
-##' gridtype <- 'cartesian'
-##' nsimPoints <- 800
-##' ncandPoints <- 200
-##' sur_window_filter <- NULL
-##' sur_pnash_filter  <- NULL
-##' Pnash_only_filter <- NULL
-##' res <- solve_game(fun, equilibrium = equilibrium, crit = "sur", model = NULL, n.init=n.init,
-##'   n.ite = n.ite, nobj=nobj, x.to.obj = x.to.obj, integcontrol=list(n.s=n.s, gridtype=gridtype),
-##'   simucontrol=list(n.ynew=n.ynew, n.sim=n.sim, IS=IS), ncores = ncores, d = d,
-##'   filtercontrol=list(filter=sur_window_filter, nsimPoints=nsimPoints, ncandPoints=ncandPoints),
-##'   kmcontrol=list(model.trend=model.trend), trace=3,
-##'   seed=1)
-##' plotGame(res, equilibrium = equilibrium)
-##'
-##' dom <- matrix(c(0,0,1,1),2)
-##' plotGameGrid("P1", graphs = "objective", domain = dom, n.grid = 51, equilibrium = equilibrium)
-##' plotGame(res, equilibrium = equilibrium, add = TRUE)
-##'
-##'
-##' }
+#' Plot equilibrium search result (2-objectives only)
+#' @param res list returned by \code{\link[GPGame]{solve_game}}
+#' @param equilibrium either "\code{NE}" for Nash, "\code{KSE}" for Kalai-Smoridinsky and "\code{NKSE}" for Nash-Kalai-Smoridinsky
+#' @param add logical; if \code{TRUE} adds the first graphical output to an already existing plot; if \code{FALSE}, (default) starts a new plot
+#' @param UQ_eq logical; should simulations of the equilibrium be displayed?
+#' @param simus optional matrix of conditional simulation if \code{UQ_Eq} is \code{TRUE}
+#' @param integcontrol list with \code{n.s} element (maybe n.s should be returned by solve_game). See \code{\link[GPGame]{solve_game}}.
+#' @param simucontrol optional list for handling conditional simulations. See \code{\link[GPGame]{solve_game}}.
+#' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir point for \code{KSE}. If only a subset of values needs to be defined, 
+#' the other coordinates can be set to \code{Inf} (resp. \code{-Inf}).
+#' @param ncores number of CPU available (> 1 makes mean parallel \code{TRUE})
+#' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives and 
+#' \code{log} a Boolean stating if a log transformation should be used or not.
+#' @return No value returned, called for visualization.
+#' @export
+#' @examples
+#' \dontrun{
+#' library(GPareto)
+#' library(parallel)
+#'
+#' # Turn off on Windows
+#' parallel <- FALSE # TRUE
+#' ncores <- 1
+#' if(parallel) ncores <- detectCores()
+#' cov.reestim <- TRUE
+#' n.sim <- 20
+#' n.ynew <- 20
+#' IS <- TRUE
+#' set.seed(1)
+#'
+#' pb <- "P1" # 'P1' 'PDE' 'Diff'
+#' fun <- P1
+#'
+#' equilibrium = "NE"
+#'
+#' d <- 2
+#' nobj <- 2
+#' n.init <- 20
+#' n.ite <- 4
+#' model.trend <- ~1
+#' n.s <- rep(31, 2) #31
+#' x.to.obj   <- c(1,2)
+#' gridtype <- 'cartesian'
+#' nsimPoints <- 800
+#' ncandPoints <- 200
+#' sur_window_filter <- NULL
+#' sur_pnash_filter  <- NULL
+#' Pnash_only_filter <- NULL
+#' res <- solve_game(fun, equilibrium = equilibrium, crit = "sur", model = NULL, n.init=n.init,
+#'   n.ite = n.ite, nobj=nobj, x.to.obj = x.to.obj, integcontrol=list(n.s=n.s, gridtype=gridtype),
+#'   simucontrol=list(n.ynew=n.ynew, n.sim=n.sim, IS=IS), ncores = ncores, d = d,
+#'   filtercontrol=list(filter=sur_window_filter, nsimPoints=nsimPoints, ncandPoints=ncandPoints),
+#'   kmcontrol=list(model.trend=model.trend), trace=3,
+#'   seed=1)
+#' plotGame(res, equilibrium = equilibrium)
+#'
+#' dom <- matrix(c(0,0,1,1),2)
+#' plotGameGrid("P1", graphs = "objective", domain = dom, n.grid = 51, equilibrium = equilibrium)
+#' plotGame(res, equilibrium = equilibrium, add = TRUE)
+#'
+#'
+#' }
 plotGame <- function(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE, simus = NULL, integcontrol = NULL, simucontrol = NULL, 
                      Nadir = NULL, Shadow = NULL, ncores = 1, calibcontrol=NULL){
 

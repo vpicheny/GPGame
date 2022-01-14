@@ -45,6 +45,13 @@ otherwise number of strategies per player.}
 \code{log} a Boolean stating if a log transformation should be used or not and 
 \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).}
 }
+\value{
+A list with elements:
+\itemize{
+\item \code{NEPoff} vector of pay-offs at the equilibrium or matrix of pay-offs at the equilibria;
+\item \code{NE} the corresponding design(s), if \code{return.design} is \code{TRUE}.
+}
+}
 \description{
 Computes the equilibrium of three types of games, given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
 }

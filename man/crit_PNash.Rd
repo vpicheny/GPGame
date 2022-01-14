@@ -30,6 +30,9 @@ a \code{nobj} vector containting the number of strategies per player}
 
 \item{eps}{numerical jitter for stability}
 }
+\value{
+Probability of being a Nash equibrium corrsponding to \code{idx}.
+}
 \description{
 Acquisition function for solving game problems based on the probability for a strategy of being a Nash Equilibrium.
 The probability can be computed exactly using the mutivariate Gaussian CDF (\code{mnormt}, \code{pmvnorm}) or by Monte Carlo.

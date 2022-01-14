@@ -1,101 +1,106 @@
 #----------------------------------------------------------------
-##' Computes the equilibrium of three types of games, given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
-##' @title Equilibrium computation of a discrete game for a given matrix with objectives values
-##' @param Z is a matrix of size [\code{npts x nsim*nobj}] of objective values, see details,
-##' @param equilibrium considered type, one of \code{"NE"}, \code{"NKSE"}, \code{"KSE"}, \code{"CKSE"}
-##' @param nobj nb of objectives (or players)
-##' @param n.s scalar of vector. If scalar, total number of strategies (to be divided equally among players),
-##'  otherwise number of strategies per player.
-##' @param expanded.indices is a matrix containing the indices of the \code{integ.pts} on the grid, see \code{\link[GPGame]{generate_integ_pts}}
-##' @param return.design Boolean; if \code{TRUE}, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
-##' @param sorted Boolean; if \code{TRUE}, the last column of expanded.indices is assumed to be sorted in increasing order. This provides a substantial efficiency gain.
-##' @param cross Should the simulation be crossed? (For "NE" only - may be dropped in future versions)
-##' @param kweights kriging weights for \code{CKS} (TESTING)
+#' Computes the equilibrium of three types of games, given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
+#' @title Equilibrium computation of a discrete game for a given matrix with objectives values
+#' @param Z is a matrix of size [\code{npts x nsim*nobj}] of objective values, see details,
+#' @param equilibrium considered type, one of \code{"NE"}, \code{"NKSE"}, \code{"KSE"}, \code{"CKSE"}
+#' @param nobj nb of objectives (or players)
+#' @param n.s scalar of vector. If scalar, total number of strategies (to be divided equally among players),
+#'  otherwise number of strategies per player.
+#' @param expanded.indices is a matrix containing the indices of the \code{integ.pts} on the grid, see \code{\link[GPGame]{generate_integ_pts}}
+#' @param return.design Boolean; if \code{TRUE}, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
+#' @param sorted Boolean; if \code{TRUE}, the last column of expanded.indices is assumed to be sorted in increasing order. This provides a substantial efficiency gain.
+#' @param cross Should the simulation be crossed? (For "NE" only - may be dropped in future versions)
+#' @param kweights kriging weights for \code{CKS} (TESTING)
 ## ' @param NSobs Nadir and Shadow points of the observations (useful for \code{KSE} in the non-noisy case), number of columns must match with \code{Z}
-##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir and/or shadow point for \code{KSE}. Some coordinates can be set to \code{Inf} (resp. -\code{Inf}).
-##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
-##' \code{log} a Boolean stating if a log transformation should be used or not and 
-##' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
-##' @details If \code{nsim=1}, each line of \code{Z} contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
-##' The position of the strategy \code{s} in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim>1}, (vectorized call) \code{Z} contains
-##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
-##' @export
-##' @importFrom Rcpp evalCpp
-##' @examples
-##' \dontrun{
-##' ## Setup
-##' fun <- function (x)
-##' {
-##'   if (is.null(dim(x)))    x <- matrix(x, nrow = 1)
-##'   b1 <- 15 * x[, 1] - 5
-##'   b2 <- 15 * x[, 2]
-##'   return(cbind((b2 - 5.1*(b1/(2*pi))^2 + 5/pi*b1 - 6)^2 + 10*((1 - 1/(8*pi)) * cos(b1) + 1),
-##'                -sqrt((10.5 - b1)*(b1 + 5.5)*(b2 + 0.5)) - 1/30*(b2 - 5.1*(b1/(2*pi))^2 - 6)^2-
-##'                 1/3 * ((1 - 1/(8 * pi)) * cos(b1) + 1)))
-##' }
-##'
-##' d <- nobj <- 2
-##'
-##' # Generate grid of strategies for Nash and Nash-Kalai-Smorodinsky
-##' n.s <- c(11,11) # number of strategies per player
-##' x.to.obj <- 1:2 # allocate objectives to players
-##' integcontrol <- generate_integ_pts(n.s=n.s,d=d,nobj=nobj,x.to.obj=x.to.obj,gridtype="cartesian")
-##' integ.pts <- integcontrol$integ.pts
-##' expanded.indices <- integcontrol$expanded.indices
-##'
-##' # Compute the pay-off on the grid
-##' response.grid <- t(apply(integ.pts, 1, fun))
-##'
-##' # Compute the Nash equilibrium (NE)
-##' trueEq <- getEquilibrium(Z = response.grid, equilibrium = "NE", nobj = nobj, n.s = n.s,
-##'                          return.design = TRUE, expanded.indices = expanded.indices,
-##'                          sorted = !is.unsorted(expanded.indices[,2]))
-##'
-##' # Pay-off at equilibrium
-##' print(trueEq$NEPoff)
-##'
-##' # Optimal strategy
-##' print(integ.pts[trueEq$NE,])
-##'
-##' # Index of the optimal strategy in the grid
-##' print(expanded.indices[trueEq$NE,])
-##'
-##' # Plots
-##' par(mfrow = c(1,2))
-##' plotGameGrid(fun = fun, n.grid = n.s, x.to.obj = x.to.obj, integcontrol=integcontrol,
-##'              equilibrium = "NE")
-##'
-##' # Compute KS equilibrium (KSE)
-##' trueKSEq <- getEquilibrium(Z = response.grid, equilibrium = "KSE", nobj = nobj,
-##'                          return.design = TRUE, sorted = !is.unsorted(expanded.indices[,2]))
-##'
-##' # Pay-off at equilibrium
-##' print(trueKSEq$NEPoff)
-##'
-##' # Optimal strategy
-##' print(integ.pts[trueKSEq$NE,])
-##'
-##' plotGameGrid(fun = fun, n.grid = n.s, integcontrol=integcontrol,
-##'              equilibrium = "KSE", fun.grid = response.grid)
-##'
-##' # Compute the Nash equilibrium (NE)
-##' trueNKSEq <- getEquilibrium(Z = response.grid, equilibrium = "NKSE", nobj = nobj, n.s = n.s,
-##'                          return.design = TRUE, expanded.indices = expanded.indices,
-##'                          sorted = !is.unsorted(expanded.indices[,2]))
-##'
-##' # Pay-off at equilibrium
-##' print(trueNKSEq$NEPoff)
-##'
-##' # Optimal strategy
-##' print(integ.pts[trueNKSEq$NE,])
-##'
-##' # Index of the optimal strategy in the grid
-##' print(expanded.indices[trueNKSEq$NE,])
-##'
-##' # Plots
-##' plotGameGrid(fun = fun, n.grid = n.s, x.to.obj = x.to.obj, integcontrol=integcontrol,
-##'              equilibrium = "NKSE")
-##' }
+#' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir and/or shadow point for \code{KSE}. Some coordinates can be set to \code{Inf} (resp. -\code{Inf}).
+#' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
+#' \code{log} a Boolean stating if a log transformation should be used or not and 
+#' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
+#' @return A list with elements:
+#' \itemize{
+#' \item \code{NEPoff} vector of pay-offs at the equilibrium or matrix of pay-offs at the equilibria;
+#' \item \code{NE} the corresponding design(s), if \code{return.design} is \code{TRUE}.
+#' }
+#' @details If \code{nsim=1}, each line of \code{Z} contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
+#' The position of the strategy \code{s} in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim>1}, (vectorized call) \code{Z} contains
+#' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
+#' @export
+#' @importFrom Rcpp evalCpp
+#' @examples
+#' \dontrun{
+#' ## Setup
+#' fun <- function (x)
+#' {
+#'   if (is.null(dim(x)))    x <- matrix(x, nrow = 1)
+#'   b1 <- 15 * x[, 1] - 5
+#'   b2 <- 15 * x[, 2]
+#'   return(cbind((b2 - 5.1*(b1/(2*pi))^2 + 5/pi*b1 - 6)^2 + 10*((1 - 1/(8*pi)) * cos(b1) + 1),
+#'                -sqrt((10.5 - b1)*(b1 + 5.5)*(b2 + 0.5)) - 1/30*(b2 - 5.1*(b1/(2*pi))^2 - 6)^2-
+#'                 1/3 * ((1 - 1/(8 * pi)) * cos(b1) + 1)))
+#' }
+#'
+#' d <- nobj <- 2
+#'
+#' # Generate grid of strategies for Nash and Nash-Kalai-Smorodinsky
+#' n.s <- c(11,11) # number of strategies per player
+#' x.to.obj <- 1:2 # allocate objectives to players
+#' integcontrol <- generate_integ_pts(n.s=n.s,d=d,nobj=nobj,x.to.obj=x.to.obj,gridtype="cartesian")
+#' integ.pts <- integcontrol$integ.pts
+#' expanded.indices <- integcontrol$expanded.indices
+#'
+#' # Compute the pay-off on the grid
+#' response.grid <- t(apply(integ.pts, 1, fun))
+#'
+#' # Compute the Nash equilibrium (NE)
+#' trueEq <- getEquilibrium(Z = response.grid, equilibrium = "NE", nobj = nobj, n.s = n.s,
+#'                          return.design = TRUE, expanded.indices = expanded.indices,
+#'                          sorted = !is.unsorted(expanded.indices[,2]))
+#'
+#' # Pay-off at equilibrium
+#' print(trueEq$NEPoff)
+#'
+#' # Optimal strategy
+#' print(integ.pts[trueEq$NE,])
+#'
+#' # Index of the optimal strategy in the grid
+#' print(expanded.indices[trueEq$NE,])
+#'
+#' # Plots
+#' par(mfrow = c(1,2))
+#' plotGameGrid(fun = fun, n.grid = n.s, x.to.obj = x.to.obj, integcontrol=integcontrol,
+#'              equilibrium = "NE")
+#'
+#' # Compute KS equilibrium (KSE)
+#' trueKSEq <- getEquilibrium(Z = response.grid, equilibrium = "KSE", nobj = nobj,
+#'                          return.design = TRUE, sorted = !is.unsorted(expanded.indices[,2]))
+#'
+#' # Pay-off at equilibrium
+#' print(trueKSEq$NEPoff)
+#'
+#' # Optimal strategy
+#' print(integ.pts[trueKSEq$NE,])
+#'
+#' plotGameGrid(fun = fun, n.grid = n.s, integcontrol=integcontrol,
+#'              equilibrium = "KSE", fun.grid = response.grid)
+#'
+#' # Compute the Nash equilibrium (NE)
+#' trueNKSEq <- getEquilibrium(Z = response.grid, equilibrium = "NKSE", nobj = nobj, n.s = n.s,
+#'                          return.design = TRUE, expanded.indices = expanded.indices,
+#'                          sorted = !is.unsorted(expanded.indices[,2]))
+#'
+#' # Pay-off at equilibrium
+#' print(trueNKSEq$NEPoff)
+#'
+#' # Optimal strategy
+#' print(integ.pts[trueNKSEq$NE,])
+#'
+#' # Index of the optimal strategy in the grid
+#' print(expanded.indices[trueNKSEq$NE,])
+#'
+#' # Plots
+#' plotGameGrid(fun = fun, n.grid = n.s, x.to.obj = x.to.obj, integcontrol=integcontrol,
+#'              equilibrium = "NKSE")
+#' }
 getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj=2, n.s, expanded.indices=NULL, return.design=FALSE,
                            sorted=FALSE, cross=FALSE, kweights = NULL, Nadir=NULL, Shadow=NULL, calibcontrol=NULL){
   #### Choose appropriate function ###################
@@ -115,20 +120,20 @@ getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj
 }
 
 #----------------------------------------------------------------
-##' Computes the equilibrium of finite Kalai-Smorodinski games given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
-##' @title Nash equilibrium computation
-##' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
-##' @param nobj nb of objectives (or players)
-##' @param n.s scalar of vector. If scalar, total nb of strategies (to be divided equally among players), otherwise nb of strategies per player.
-##' @param expanded.indices is a matrix containing the indices of the integ.pts on the grid
-##' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
-##' @param sorted Boolean; if TRUE, the last column of expanded.indices is assumed to be sorted in increasing order. This provides a substantial efficiency gain.
-##' @param cross if TRUE, all the combinations of trajectories are used
-##' @param ... not used, for compatibility
-##' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
-##' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
-##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
-##' @noRd
+#' Computes the equilibrium of finite Kalai-Smorodinski games given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
+#' @title Nash equilibrium computation
+#' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
+#' @param nobj nb of objectives (or players)
+#' @param n.s scalar of vector. If scalar, total nb of strategies (to be divided equally among players), otherwise nb of strategies per player.
+#' @param expanded.indices is a matrix containing the indices of the integ.pts on the grid
+#' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
+#' @param sorted Boolean; if TRUE, the last column of expanded.indices is assumed to be sorted in increasing order. This provides a substantial efficiency gain.
+#' @param cross if TRUE, all the combinations of trajectories are used
+#' @param ... not used, for compatibility
+#' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
+#' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
+#' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
+#' @noRd
 getNashEquilibrium <- function(Z, nobj=2, n.s, expanded.indices=NULL, return.design=FALSE, sorted=FALSE, cross=FALSE,...){
   
   if(cross){
@@ -167,20 +172,20 @@ getNashEquilibrium <- function(Z, nobj=2, n.s, expanded.indices=NULL, return.des
   }
 }
 #----------------------------------------------------------------
-##' Computes the equilibrium of finite Nash/Kalai-Smorodinski games given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
-##' @title Nash/Kalai-Smorodinski equilibrium
-##' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
-##' @param nobj nb of objectives (or players)
-##' @param n.s scalar of vector. If scalar, total nb of strategies (to be divided equally among players), otherwise nb of strategies per player.
-##' @param expanded.indices is a matrix containing the indices of the integ.pts on the grid
-##' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
-##' @param cross if TRUE, all the combinations of trajectories are used
-##' @param ... not used, for compatibility
-##' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
-##' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
-##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
-##'
-##' @noRd
+#' Computes the equilibrium of finite Nash/Kalai-Smorodinski games given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
+#' @title Nash/Kalai-Smorodinski equilibrium
+#' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
+#' @param nobj nb of objectives (or players)
+#' @param n.s scalar of vector. If scalar, total nb of strategies (to be divided equally among players), otherwise nb of strategies per player.
+#' @param expanded.indices is a matrix containing the indices of the integ.pts on the grid
+#' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
+#' @param cross if TRUE, all the combinations of trajectories are used
+#' @param ... not used, for compatibility
+#' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
+#' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
+#' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
+#'
+#' @noRd
 getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indices=NULL, cross=FALSE, ...){
   
   # allShadow <- getNashEquilibrium(Z=Z, nobj=nobj, n.s=n.s, expanded.indices=expanded.indices, cross=cross)
@@ -241,20 +246,20 @@ getNKSequilibrium <- function(Z, nobj=2, n.s, return.design=FALSE, expanded.indi
   else                     return(list(NEPoff=NEPoff, NE=I[i]))
 }
 #----------------------------------------------------------------
-##' Computes the equilibrium of finite Kalai-Smorodinski games given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
-##' @title Kalai-Smorodinski equilibrium computation
-##' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
-##' @param nobj nb of objectives (or players)
-##' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
-##' @param Nadir,Shadow optional vectors of size \code{nobj} to fix the Nadir and/or Shadow to a preset value. If only a subset of values needs to be defined, 
-##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
-##' @param ... not used, for compatibility
-##' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
-##' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
-##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
-##' @noRd
-##' @importFrom stats var
-##' @importFrom matrixStats colMins colMaxs
+#' Computes the equilibrium of finite Kalai-Smorodinski games given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
+#' @title Kalai-Smorodinski equilibrium computation
+#' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
+#' @param nobj nb of objectives (or players)
+#' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
+#' @param Nadir,Shadow optional vectors of size \code{nobj} to fix the Nadir and/or Shadow to a preset value. If only a subset of values needs to be defined, 
+#' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
+#' @param ... not used, for compatibility
+#' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
+#' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
+#' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
+#' @noRd
+#' @importFrom stats var
+#' @importFrom matrixStats colMins colMaxs
 getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shadow=NULL, ...){
   
   nsim <- ncol(Z) / nobj
@@ -301,22 +306,22 @@ getKSequilibrium <- function(Z, nobj=2, return.design=FALSE, Nadir = NULL, Shado
 }
 
 #----------------------------------------------------------------
-##' Computes the equilibrium of finite Kalai-Smorodinski games given in the copula space, given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
-##' @title Copula Kalai-Smorodinski equilibrium computation
-##' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
-##' @param nobj nb of objectives (or players)
-##' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
-##' @param kweights kriging weights for \code{CKS} (TESTING)
-##' @param Nadir,Shadow optional vectors of size \code{nobj} to fix the Nadir and/or Shadow to a preset value. By default, in the copula space the nadir point is 1 and the shadow point is 0.
-##' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
-##' \code{log} a Boolean stating if a log transformation should be used or not and 
-##' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
-##' @param ... not used, for compatibility
-##' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
-##' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
-##' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
-##' @noRd
-##' @importFrom stats var
+#' Computes the equilibrium of finite Kalai-Smorodinski games given in the copula space, given a matrix of objectives (or a set of matrices) and the structure of the strategy space.
+#' @title Copula Kalai-Smorodinski equilibrium computation
+#' @param Z is a matrix of size [npts x nsim*nobj] of objective values, see details,
+#' @param nobj nb of objectives (or players)
+#' @param return.design Boolean; if TRUE, the index of the optimal strategy is returned (otherwise only the pay-off is returned)
+#' @param kweights kriging weights for \code{CKS} (TESTING)
+#' @param Nadir,Shadow optional vectors of size \code{nobj} to fix the Nadir and/or Shadow to a preset value. By default, in the copula space the nadir point is 1 and the shadow point is 0.
+#' @param calibcontrol an optional list for calibration problems, containing \code{target} a vector of target values for the objectives, 
+#' \code{log} a Boolean stating if a log transformation should be used or not and 
+#' \code{offset} a (small) scalar so that each objective is log(offset + (y-T^2)).
+#' @param ... not used, for compatibility
+#' @details If \code{nsim}=1, each line of Z contains the pay-offs of the different players for a given strategy s: [obj1(s), obj2(s), ...].
+#' The position of the strategy s in the grid is given by the corresponding line of \code{expanded.indices}. If \code{nsim}>1, (vectorized call) Z contains
+#' different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
+#' @noRd
+#' @importFrom stats var
 getCKSequilibrium <- function(Z, nobj=2, return.design=FALSE, kweights = NULL, Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
   
   if(is.null(Nadir)) Nadir <- rep(1, nobj)
