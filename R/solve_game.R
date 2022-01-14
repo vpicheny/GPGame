@@ -887,7 +887,7 @@ solve_game <- function(
 #' @return See \code{\link[GPGame]{solve_game}}.
 #' @details 
 #' Unless given new values, restart_sg reuses values stored in results (e.g., \code{integcontrol}).
-#' @note Temporary function: maybe save more details in results ?
+#' @note For beta testing, this function could evolve.
 restart_sg <- function(results, fun, ..., equilibrium="NE", crit="sur", n.ite, x.to.obj=NULL, noise.var = NULL,
                        Nadir=NULL, Shadow=NULL, integcontrol=NULL, simucontrol=NULL, filtercontrol=NULL, kmcontrol=NULL, returncontrol=NULL,
                        ncores=1, trace=1, seed=NULL){
