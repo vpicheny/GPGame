@@ -13,7 +13,7 @@ Important functions: \cr
 \code{\link[GPGame]{plotGame}} \cr
 }
 \examples{
-\dontrun{
+\donttest{
 # To use parallel computation (turn off on Windows)
 library(parallel)
 parallel <- FALSE # TRUE # 

@@ -39,7 +39,7 @@
 #' @importFrom graphics pairs points
 ## ' @importFrom emoa is_dominated nondominated_points
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' ##############################################
 #' # 2 variables, 2 players
 #' ##############################################

@@ -48,7 +48,7 @@ No value returned, called for visualization.
 Plot equilibrium search result (2-objectives only)
 }
 \examples{
-\dontrun{
+\donttest{
 library(GPareto)
 library(parallel)
 

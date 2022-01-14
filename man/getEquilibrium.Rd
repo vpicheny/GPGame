@@ -61,7 +61,7 @@ The position of the strategy \code{s} in the grid is given by the corresponding 
 different trajectories for each pay-off: each line is [obj1_1(x), obj1_2(x), ... obj2_1(x), obj2_2(x), ...].
 }
 \examples{
-\dontrun{
+\donttest{
 ## Setup
 fun <- function (x)
 {
@@ -100,7 +100,7 @@ print(integ.pts[trueEq$NE,])
 print(expanded.indices[trueEq$NE,])
 
 # Plots
-par(mfrow = c(1,2))
+oldpar <- par(mfrow = c(1,2))
 plotGameGrid(fun = fun, n.grid = n.s, x.to.obj = x.to.obj, integcontrol=integcontrol,
              equilibrium = "NE")
 
@@ -134,5 +134,6 @@ print(expanded.indices[trueNKSEq$NE,])
 # Plots
 plotGameGrid(fun = fun, n.grid = n.s, x.to.obj = x.to.obj, integcontrol=integcontrol,
              equilibrium = "NKSE")
+par(oldpar)
 }
 }

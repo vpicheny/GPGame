@@ -62,12 +62,10 @@ prob.of.non.domination <- function(paretoFront=NULL, model=NULL, integration.poi
   if (is.null(nsamp)) nsamp <- 100
   
   if (is.null(model) && is.null(predictions)){
-    print("Error: either a list of models or a list of km predictions must be provided")
-    return(NULL)
+    stop("Error: either a list of models or a list of km predictions must be provided")
   }
   if ((is.null(model) || is.null(integration.points)) && is.null(predictions)){
-    print("Error: either models + integration points or km predictions must be provided")
-    return(NULL)
+    stop("Error: either models + integration points or km predictions must be provided")
   }
   
   n.integration.points <- max(nrow(integration.points), length(predictions[[1]]$mean))

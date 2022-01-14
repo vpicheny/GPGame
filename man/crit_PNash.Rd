@@ -38,7 +38,7 @@ Acquisition function for solving game problems based on the probability for a st
 The probability can be computed exactly using the mutivariate Gaussian CDF (\code{mnormt}, \code{pmvnorm}) or by Monte Carlo.
 }
 \examples{
-\dontrun{
+\donttest{
 ##############################################
 # Example 1: 2 variables, 2 players, no filter
 ##############################################

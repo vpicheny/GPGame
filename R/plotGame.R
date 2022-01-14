@@ -27,7 +27,7 @@
 ## ' @details
 ## ' Options to plot Shadow and nadir points?
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(GPareto)
 #'
 #' ## 2 variables
@@ -50,8 +50,7 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
                          Nadir = NULL, Shadow=NULL, calibcontrol=NULL, ...){
 
   if (is.null(fun) && is.null(fun.grid)) {
-    cat("Either fun or fun.grid must be provided \n")
-    return(NA)
+    stop("Either fun or fun.grid must be provided \n")
   }
 
   if (!is.null(calibcontrol)) {
@@ -66,7 +65,7 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
   graphs <- match.arg(graphs)
 
   if (is.null(domain) && is.null(integ.pts)) {
-    cat("At least one of the following inputs must be provided: domain, integcontrol$integ.pts")
+    warning("At least one of the following inputs must be provided: domain, integcontrol$integ.pts")
   }
   if (!is.null(integ.pts))    d <- ncol(integ.pts)
   else if (!is.null(domain))  d <- nrow(domain)
@@ -86,8 +85,7 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
 
   if (!is.null(fun.grid)) {
     if (nrow(fun.grid) != n.integ.pts) {
-      cat("fun.grid inconsistent with either integ.pts or n.grid \n")
-      return(NA)
+      stop("fun.grid inconsistent with either integ.pts or n.grid \n")
     }
   }
 
@@ -189,7 +187,7 @@ plotGameGrid <- function(fun=NULL, domain=NULL, n.grid, graphs = c("both", "desi
 #' @return No value returned, called for visualization.
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(GPareto)
 #' library(parallel)
 #'
@@ -239,7 +237,7 @@ plotGame <- function(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE, simus =
                      Nadir = NULL, Shadow = NULL, ncores = 1, calibcontrol=NULL){
 
   if (length(res$model)>2) {
-    cat("plotGame works only for two players/objectives \n")
+    stop("plotGame works only for two players/objectives \n")
     return(NA)
   }
 
@@ -251,7 +249,7 @@ plotGame <- function(res, equilibrium = "NE", add = FALSE, UQ_eq = TRUE, simus =
       simus <- try(t(Reduce(rbind, mclapply(res$model, simulate, nsim = n.sim, newdata = res$integcontrol$integ.pts, cond=TRUE,
                                             checkNames = FALSE, nugget.sim = 10^-8, mc.cores = ncores))))
       if (typeof(simus) == "character") {
-        cat("Conditional simulations failed - maybe there are too many integration points \n Correct or set UQ_eq = FALSE \n")
+        warning("Conditional simulations failed - maybe there are too many integration points \n Correct or set UQ_eq = FALSE \n")
         Eq_simu <- NULL
         return(NA)
       }

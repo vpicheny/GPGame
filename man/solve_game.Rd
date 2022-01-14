@@ -133,7 +133,7 @@ The boolean \code{force.exploit.last} (default to \code{TRUE}) allows to evaluat
 instead of using \code{crit} (i.e., \code{sur}) for \code{KSE} and \code{CKSE}.
 }
 \examples{
-\dontrun{
+\donttest{
 
 ################################################################
 # Example 1: Nash equilibrium, 2 variables, 2 players, no filter

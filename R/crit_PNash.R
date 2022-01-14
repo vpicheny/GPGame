@@ -104,7 +104,7 @@ Pnash_wrap <- function(i, s, integcontrol, type = 'simu', model, control = list(
 #' V. Picheny, M. Binois, A. Habbal (2016+), A Bayesian optimization approach to find Nash equilibria,
 #' \emph{https://arxiv.org/abs/1611.02440}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' ##############################################
 #' # Example 1: 2 variables, 2 players, no filter
 #' ##############################################

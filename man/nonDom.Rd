@@ -25,7 +25,7 @@ Extract non-dominated points from a set, or with respect to a reference Pareto f
 Use Kung non-domination sorting
 }
 \examples{
-\dontrun{
+\donttest{
 d <- 6
 n <- 1000
 n2 <- 1000

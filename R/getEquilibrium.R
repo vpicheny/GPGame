@@ -27,7 +27,7 @@
 #' @export
 #' @importFrom Rcpp evalCpp
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' ## Setup
 #' fun <- function (x)
 #' {
@@ -66,7 +66,7 @@
 #' print(expanded.indices[trueEq$NE,])
 #'
 #' # Plots
-#' par(mfrow = c(1,2))
+#' oldpar <- par(mfrow = c(1,2))
 #' plotGameGrid(fun = fun, n.grid = n.s, x.to.obj = x.to.obj, integcontrol=integcontrol,
 #'              equilibrium = "NE")
 #'
@@ -100,6 +100,7 @@
 #' # Plots
 #' plotGameGrid(fun = fun, n.grid = n.s, x.to.obj = x.to.obj, integcontrol=integcontrol,
 #'              equilibrium = "NKSE")
+#' par(oldpar)
 #' }
 getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj=2, n.s, expanded.indices=NULL, return.design=FALSE,
                            sorted=FALSE, cross=FALSE, kweights = NULL, Nadir=NULL, Shadow=NULL, calibcontrol=NULL){
@@ -114,8 +115,7 @@ getEquilibrium <- function(Z, equilibrium = c("NE", "NKSE", "KSE", "CKSE"), nobj
   } else if (equilibrium=="NKSE") {
     return(getNKSequilibrium(Z = Z, nobj = nobj, n.s = n.s, expanded.indices = expanded.indices, return.design = return.design, sorted = sorted, cross = cross))
   } else {
-    cat("wrong crit \n")
-    return(NA)
+    stop("wrong crit \n")
   }
 }
 
@@ -140,7 +140,7 @@ getNashEquilibrium <- function(Z, nobj=2, n.s, expanded.indices=NULL, return.des
     nsim <- ncol(Z)/nobj
     
     if(!sorted)
-      print("Non sorted case not implemented with cross")
+      warning("Non sorted case not implemented with cross")
     
     combisim <- NULL
     for(i in 1:nobj)

@@ -54,6 +54,9 @@ restart_sg(
 
 \item{seed}{to fix the random variable generator}
 }
+\value{
+See \code{\link[GPGame]{solve_game}}.
+}
 \description{
 Wrapper around \code{\link[GPGame]{solve_game}} to add iterations to an existing run
 }
@@ -61,5 +64,5 @@ Wrapper around \code{\link[GPGame]{solve_game}} to add iterations to an existing
 Unless given new values, restart_sg reuses values stored in results (e.g., \code{integcontrol}).
 }
 \note{
-Temporary function: maybe save more detailts in results ?
+Temporary function: maybe save more details in results ?
 }

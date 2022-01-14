@@ -1,32 +1,32 @@
 #----------------------------------------------------------------
-##' Select candidate points for conditional simulations or for criterion evaluation, based on a "window" or a probability related to the equilibrium at hand.
-##' @title All-purpose filter
-##' @param n.s.target scalar or vector of number of strategies (one value per player) to select. For \code{NE}, if \code{n.s.target} is a scalar
-##' then each player will have \code{round(n.s.target^(1/nobj)} strategies.
-##' @param integcontrol is a list containing: \code{integ.pts}, a [\code{npts x dim}] matrix defining the grid,
-##' \code{expanded.indices} a matrix containing the indices of the integ.pts on the grid and \code{n.s},
-##' a \code{nobj} vector containting the number of strategies per player
-##' @param model is a list of \code{nobj} \code{nobj} \code{\link[DiceKriging]{km}} objects
-##' @param predictions is a list of size \code{nobj}
-##' @param type either "\code{window}", "\code{PND}" or "\code{Pnash}", see details
-##' @param equilibrium either '\code{NE}', '\code{KSE}' or '\code{NKSE}' for Nash/Kalai-Smoridinsky/Nash-Kalai-Smoridinsky equilibria
-##' @param options a list containing either the window (matrix or target) or the parameters for Pnash: method
-##' ("\code{simu}" or "\code{exact}") and \code{nsim}
-##' @param ncores \code{\link[parallel]{mclapply}} is used if \code{> 1} for parallel evaluation
-##' @param random Boolean. If \code{FALSE}, the best points according to the filter criterion are chosen,
-##' otherwise the points are chosen by random sampling with weights proportional to the criterion.
-##' @param include.obs Boolean. If \code{TRUE}, the observations are included to the filtered set.
-##' @param min.crit Minimal value for the criterion, useful if \code{random = TRUE}.
-##' @param nsamp number of samples to estimate the probability of non-domination, useful when \code{type=PND} and \code{nobj}>3.
-##' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
-##' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
-##' @param target a vector of target values for the objectives to use the calibration mode
-##' @return List with two elements: \code{I} indices selected and \code{crit} the filter metric at all candidate points
-##' @details If \code{type == "windows"}, points are ranked based on their distance to \code{option$window} (when it is a target vector),
-##' or based on the probability that the response belongs to \code{option$window}.
-##' The other options, "\code{PND}" (probability of non-domination, i.e., of not being dominated by the current Pareto front)
-##' and "\code{Pnash}" (probability of realizing a Nash equilibrium) base the ranking of points on the associated probability.
-##' @export
+#' Select candidate points for conditional simulations or for criterion evaluation, based on a "window" or a probability related to the equilibrium at hand.
+#' @title All-purpose filter
+#' @param n.s.target scalar or vector of number of strategies (one value per player) to select. For \code{NE}, if \code{n.s.target} is a scalar
+#' then each player will have \code{round(n.s.target^(1/nobj)} strategies.
+#' @param integcontrol is a list containing: \code{integ.pts}, a [\code{npts x dim}] matrix defining the grid,
+#' \code{expanded.indices} a matrix containing the indices of the integ.pts on the grid and \code{n.s},
+#' a \code{nobj} vector containting the number of strategies per player
+#' @param model is a list of \code{nobj} \code{nobj} \code{\link[DiceKriging]{km}} objects
+#' @param predictions is a list of size \code{nobj}
+#' @param type either "\code{window}", "\code{PND}" or "\code{Pnash}", see details
+#' @param equilibrium either '\code{NE}', '\code{KSE}' or '\code{NKSE}' for Nash/Kalai-Smoridinsky/Nash-Kalai-Smoridinsky equilibria
+#' @param options a list containing either the window (matrix or target) or the parameters for Pnash: method
+#' ("\code{simu}" or "\code{exact}") and \code{nsim}
+#' @param ncores \code{\link[parallel]{mclapply}} is used if \code{> 1} for parallel evaluation
+#' @param random Boolean. If \code{FALSE}, the best points according to the filter criterion are chosen,
+#' otherwise the points are chosen by random sampling with weights proportional to the criterion.
+#' @param include.obs Boolean. If \code{TRUE}, the observations are included to the filtered set.
+#' @param min.crit Minimal value for the criterion, useful if \code{random = TRUE}.
+#' @param nsamp number of samples to estimate the probability of non-domination, useful when \code{type=PND} and \code{nobj}>3.
+#' @param Nadir,Shadow optional vectors of size \code{nobj}. Replaces the nadir or shadow point for \code{KSE}. If only a subset of values needs to be defined, 
+#' the other coordinates can be set to \code{Inf} (resp. -\code{Inf}).
+#' @param target a vector of target values for the objectives to use the calibration mode
+#' @return List with two elements: \code{I} indices selected and \code{crit} the filter metric at all candidate points
+#' @details If \code{type == "windows"}, points are ranked based on their distance to \code{option$window} (when it is a target vector),
+#' or based on the probability that the response belongs to \code{option$window}.
+#' The other options, "\code{PND}" (probability of non-domination, i.e., of not being dominated by the current Pareto front)
+#' and "\code{Pnash}" (probability of realizing a Nash equilibrium) base the ranking of points on the associated probability.
+#' @export
 filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="window", equilibrium="NE",
                             integcontrol, options = NULL, ncores = 1, random=TRUE, include.obs=FALSE,
                             min.crit = 1e-12, nsamp = NULL, Nadir=NULL, Shadow=NULL, target=NULL) {
@@ -49,7 +49,7 @@ filter_for_Game <- function(n.s.target, model=NULL, predictions=NULL, type="wind
     n.s.target <- prod(n.s.target)
   
   if (equilibrium %in% c("KSE", "CKSE") && type=="Pnash") {
-    cat("Pnash filter not available for KSE; switching to PND \n")
+    warning("Pnash filter not available for KSE; switching to PND \n")
     type <- "PND"
   }
   

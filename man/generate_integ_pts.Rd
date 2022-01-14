@@ -54,7 +54,7 @@ the corresponding indices (for \code{NE}), and the vector \code{n.s}
 Preprocessing to link strategies and designs.
 }
 \examples{
-\dontrun{
+\donttest{
 ##############################################
 ### 4 variables, 2 players, no filter
 ##############################################

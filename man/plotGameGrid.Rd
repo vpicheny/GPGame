@@ -57,7 +57,7 @@ list returned by invisible() with elements:
 Plot equilibrium for 2 objectives test problems with evaluations on a grid. The number of variables is not limited.
 }
 \examples{
-\dontrun{
+\donttest{
 library(GPareto)
 
 ## 2 variables

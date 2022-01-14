@@ -63,7 +63,7 @@ Computes the SUR criterion associated to an equilibrium for a given \code{xnew} 
 on a predefined grid.
 }
 \examples{
-\dontrun{
+\donttest{
 ##############################################
 # 2 variables, 2 players
 ##############################################
