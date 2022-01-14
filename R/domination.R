@@ -11,7 +11,6 @@
 #' @references
 #' Kung, H. T., Luccio, F., & Preparata, F. P. (1975). On finding the maxima of a set of vectors. Journal of the ACM (JACM), 22(4), 469-476.
 #' @examples
-#' \donttest{
 #' d <- 6
 #' n <- 1000
 #' n2 <- 1000
@@ -35,7 +34,6 @@
 # '
 # ' all(nonDom(test, ref) == test[res2,])
 # '
-#' }
 nonDom <- function(points, ref = NULL, return.idx = FALSE){
   if(is.null(ref)){
     ordrs <- order(points[,1])
