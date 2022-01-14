@@ -101,14 +101,15 @@ model <- list(mf1, mf2)
 Simu <- t(Reduce(rbind, lapply(model, simulate, nsim=10, newdata=integ.pts, cond=TRUE,
                                    checkNames=FALSE, nugget.sim = 10^-8)))
 
-# Useful precalculations
-library(KrigInv)
-precalc.data <- lapply(model, FUN=KrigInv:::precomputeUpdateData, integration.points=integ.pts)
+# Useful precalculations with the package KrigInv can be reused for computational speed.
+# library(KrigInv)
+# precalc.data <- lapply(model, FUN=KrigInv:::precomputeUpdateData, integration.points=integ.pts)
 
 # Compute criterion for all points on the grid
 crit_grid <- lapply(X=1:prod(n.s), FUN=crit_SUR_Eq, model=model,
                     integcontrol=integcontrol, equilibrium = "NE",
-                    Simu=Simu, precalc.data=precalc.data, n.ynew=10, IS=FALSE, cross=FALSE)
+                    # precalc.data=precalc.data, # Uncomment if precalc.data is computed
+                    Simu=Simu, n.ynew=10, IS=FALSE, cross=FALSE)
 crit_grid <- unlist(crit_grid)
 
 # Draw contour of the criterion
