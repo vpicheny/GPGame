@@ -66,11 +66,11 @@
 #' @return
 #' A list with components:
 #' \itemize{
-#' \item{\code{model}}{: a list of objects of class \code{\link[DiceKriging]{km}} corresponding to the last kriging models fitted.}
-#' \item{\code{Jplus}}{: recorded values of the acquisition function maximizer}
-#' \item{\code{integ.pts} and  \code{expanded.indices}}{: the discrete space used,}
-#' \item{\code{predEq}}{: a list containing the recorded values of the estimated best solution,}
-#' \item{\code{Eq.design, Eq.poff}}{: estimated equilibrium and corresponding pay-off}
+#' \item \code{model}: a list of objects of class \code{\link[DiceKriging]{km}} corresponding to the last kriging models fitted.
+#' \item \code{Jplus}: recorded values of the acquisition function maximizer
+#' \item \code{integ.pts} and  \code{expanded.indices}: the discrete space used,
+#' \item \code{predEq}: a list containing the recorded values of the estimated best solution,
+#' \item \code{Eq.design, Eq.poff}: estimated equilibrium and corresponding pay-off
 #' }
 #'
 #' Note: with CKSE, kweights are not used when the mean on integ.pts is used. Also, CKSE does not support non-constant mean at this stage.
